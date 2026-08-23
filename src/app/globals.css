@@ -1,0 +1,75 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+
+:root {
+  --canvas: #f3f2ec;
+  --ink: #20221e;
+  --surface: #ffffff;
+  --cobalt: #3157d5;
+  --teal: #25806a;
+  --amber: #a1701f;
+  --crimson: #a43d36;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: "Inter Variable", Inter, ui-sans-serif, system-ui, sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a,
+select,
+input[type="range"] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: #dce3ff;
+  color: #1f3eaa;
+}
+
+:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--cobalt) 45%, transparent);
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c9cbc3;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
