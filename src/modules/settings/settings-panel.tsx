@@ -6,16 +6,20 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Surface } from "@/components/ui/surface";
+import { useWorkspace } from "@/modules/auth/workspace-provider";
 
 export function SettingsPanel() {
+  const workspace = useWorkspace();
   const [message, setMessage] = useState<string | null>(null);
   const [resetting, setResetting] = useState(false);
-  const members = [
-    ["Maya Chen", "maya@aster.example", "Owner"],
-    ["Jordan Wells", "jordan@aster.example", "Transformation lead"],
-    ["Priya Nair", "priya@aster.example", "Approver"],
-    ["Leo Martin", "leo@aster.example", "Analyst"],
-  ];
+  const organisationName =
+    workspace.mode === "synthetic_replay"
+      ? "Aster Financial Group"
+      : "AI Transformation OS";
+  const memberRole = workspace.role
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 
   async function resetDemo() {
     setResetting(true);
@@ -36,7 +40,10 @@ export function SettingsPanel() {
             <div>
               <h2 className="text-lg font-semibold">Organisation and access</h2>
               <p className="mt-1 text-xs text-[#70736a]">
-                Aster Financial Group · synthetic demonstration tenant
+                {organisationName} ·{" "}
+                {workspace.mode === "synthetic_replay"
+                  ? "Synthetic Replay"
+                  : "live workspace"}
               </p>
             </div>
             <Button
@@ -51,10 +58,10 @@ export function SettingsPanel() {
             </Button>
           </div>
           <div className="divide-y divide-[#e7e8e2]">
-            {members.map(([name, email, role]) => (
+            {[workspace.displayName].map((name) => (
               <div
                 className="grid gap-3 p-4 sm:grid-cols-[1fr_180px] sm:items-center"
-                key={email}
+                key={name}
               >
                 <div className="flex items-center gap-3">
                   <span className="grid size-8 place-items-center rounded bg-[#e9edf9] text-xs font-semibold text-[#3157d5]">
@@ -65,13 +72,15 @@ export function SettingsPanel() {
                   </span>
                   <div>
                     <p className="text-sm font-semibold">{name}</p>
-                    <p className="mt-0.5 text-[11px] text-[#777a71]">{email}</p>
+                    <p className="mt-0.5 text-[11px] text-[#777a71]">
+                      Current membership
+                    </p>
                   </div>
                 </div>
                 <select
                   aria-label={`${name} role`}
                   className="h-9 rounded-md border border-[#d9dad4] bg-white px-3 text-xs"
-                  defaultValue={role}
+                  defaultValue={memberRole}
                 >
                   {[
                     "Owner",
@@ -145,31 +154,33 @@ export function SettingsPanel() {
             ))}
           </div>
         </Surface>
-        <Surface className="p-5">
-          <KeyRound className="size-5 text-[#3157d5]" />
-          <h2 className="mt-3 text-sm font-semibold">Demo reset</h2>
-          <p className="mt-2 text-xs leading-5 text-[#6d7067]">
-            Reset restores stable Aster identifiers, synthetic evidence, cases,
-            pilots, and pending approvals.
-          </p>
-          <Button
-            className="mt-4 w-full"
-            disabled={resetting}
-            onClick={resetDemo}
-            size="sm"
-            variant="danger"
-          >
-            {resetting ? "Resetting…" : "Reset synthetic demo"}
-          </Button>
-          {message ? (
-            <p
-              aria-live="polite"
-              className="mt-3 text-[11px] leading-4 text-[#6d7067]"
-            >
-              {message}
+        {workspace.mode === "synthetic_replay" ? (
+          <Surface className="p-5">
+            <KeyRound className="size-5 text-[#3157d5]" />
+            <h2 className="mt-3 text-sm font-semibold">Demo reset</h2>
+            <p className="mt-2 text-xs leading-5 text-[#6d7067]">
+              Reset restores stable Aster identifiers, synthetic evidence,
+              cases, pilots, and pending approvals.
             </p>
-          ) : null}
-        </Surface>
+            <Button
+              className="mt-4 w-full"
+              disabled={resetting}
+              onClick={resetDemo}
+              size="sm"
+              variant="danger"
+            >
+              {resetting ? "Resetting…" : "Reset synthetic demo"}
+            </Button>
+            {message ? (
+              <p
+                aria-live="polite"
+                className="mt-3 text-[11px] leading-4 text-[#6d7067]"
+              >
+                {message}
+              </p>
+            ) : null}
+          </Surface>
+        ) : null}
       </aside>
     </div>
   );

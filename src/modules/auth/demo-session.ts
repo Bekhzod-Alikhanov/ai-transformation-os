@@ -1,9 +1,9 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 
-const SESSION_LIFETIME_MS = 12 * 60 * 60 * 1_000;
+const SESSION_LIFETIME_MS = 24 * 60 * 60 * 1_000;
 
 export type DemoSession = {
-  organisationId: "org-aster";
+  organisationId: string;
   role: "owner";
   synthetic: true;
   issuedAt: number;
@@ -19,17 +19,25 @@ function sign(payload: string, secret: string) {
   return createHmac("sha256", secret).update(payload).digest("base64url");
 }
 
-export function createDemoSession(secret: string, now = Date.now()) {
+function encodeDemoSession(session: DemoSession, secret: string) {
   assertSecret(secret);
+  const payload = Buffer.from(JSON.stringify(session)).toString("base64url");
+  return `${payload}.${sign(payload, secret)}`;
+}
+
+export function createDemoSession(
+  secret: string,
+  now = Date.now(),
+  organisationId: string = randomUUID(),
+) {
   const session: DemoSession = {
-    organisationId: "org-aster",
+    organisationId,
     role: "owner",
     synthetic: true,
     issuedAt: now,
     expiresAt: now + SESSION_LIFETIME_MS,
   };
-  const payload = Buffer.from(JSON.stringify(session)).toString("base64url");
-  return `${payload}.${sign(payload, secret)}`;
+  return encodeDemoSession(session, secret);
 }
 
 export function verifyDemoSession(
@@ -52,7 +60,7 @@ export function verifyDemoSession(
     Buffer.from(payload, "base64url").toString("utf8"),
   ) as DemoSession;
   if (
-    session.organisationId !== "org-aster" ||
+    !session.organisationId ||
     session.role !== "owner" ||
     session.synthetic !== true
   )
@@ -60,4 +68,30 @@ export function verifyDemoSession(
   if (!Number.isFinite(session.expiresAt) || session.expiresAt <= now)
     throw new Error("Demo session expired");
   return session;
+}
+
+export function resetDemoSession(
+  token: string,
+  secret: string,
+  now = Date.now(),
+) {
+  const session = verifyDemoSession(token, secret, now);
+  return encodeDemoSession({ ...session, issuedAt: now }, secret);
+}
+
+export function resumeOrCreateDemoSession(
+  token: string | undefined,
+  secret: string,
+  now = Date.now(),
+  createOrganisationId: () => string = randomUUID,
+) {
+  if (token) {
+    try {
+      verifyDemoSession(token, secret, now);
+      return token;
+    } catch {
+      // Expired and invalid demo cookies are replaced with an isolated session.
+    }
+  }
+  return createDemoSession(secret, now, createOrganisationId());
 }

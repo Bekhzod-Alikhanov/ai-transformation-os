@@ -1,5 +1,13 @@
 # Architecture
 
+## Credential-free Sia demo
+
+`/demo` is a deliberately separate, browser-local Synthetic Replay. It seeds exactly Support Triage, Executive Reporting, and Procurement Analysis for a demo organisation/session. A versioned `DemoWorkspaceStore` owns all operational replay state: accepted evidence, immutable assumption revisions, deterministic economics and simulation summaries, citation-validated committee events, CFO actions, decisions, activity, My Work, and exports.
+
+The demo calls no provider, API, database, background workflow, OAuth, or model runtime. Browser storage is scoped to `sia-synthetic-replay:<organisationId>`, handles malformed/obsolete records by restoring the seed, reacts to cross-tab storage updates, and supports a stable reset. The `/demo` shell intentionally exposes only the local replay route; provider-dependent navigation and controls are hidden.
+
+The interactive boundary is a narrowly scoped Client Component because it needs browser storage and event handlers. Its data is seeded locally and all server-to-client props are serializable. The deterministic financial and simulation engines are reused directly; simulations retain summaries, histogram buckets, and seed, never raw samples.
+
 ## Production topology
 
 The platform is a modular monolith: one deployable Next.js application with strict domain boundaries and durable background execution. Postgres is the system of record; JSONB is limited to versioned schemas, immutable payload snapshots, structured model output, and connector metadata.

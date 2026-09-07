@@ -1,10 +1,12 @@
 import { SectionHeader } from "@/components/ui/surface";
+import { requireWorkspaceCapability } from "@/modules/auth/workspace-routes.server";
 import { ModelLab } from "@/modules/model-lab/model-lab";
 import { ProofOfValueWorkbench } from "@/modules/proof-of-value/proof-of-value-workbench";
 
 export const metadata = { title: "Model Lab" };
 
-export default function ModelLabPage() {
+export default async function ModelLabPage() {
+  await requireWorkspaceCapability("model_lab");
   return (
     <div className="mx-auto max-w-[1480px] space-y-6 pb-16">
       <SectionHeader

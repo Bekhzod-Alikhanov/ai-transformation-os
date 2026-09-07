@@ -4,43 +4,44 @@ import { Upload, WandSparkles } from "lucide-react";
 import { useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { uploadSourceFile } from "@/modules/sources/source-upload.client";
 
 export function OpportunityActions() {
   const fileInput = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [dataAcknowledged, setDataAcknowledged] = useState(false);
+  const [aiProcessingConsent, setAiProcessingConsent] = useState(false);
 
   async function upload(file?: File) {
     if (!file) return;
     setBusy(true);
-    const form = new FormData();
-    form.set("file", file);
-    const response = await fetch("/api/evidence/upload", {
-      method: "POST",
-      body: form,
-    });
-    const result = (await response.json()) as {
-      itemCount?: number;
-      requiresOcr?: boolean;
-      error?: string;
-    };
-    setMessage(
-      response.ok
-        ? `${result.itemCount ?? 0} source items parsed${result.requiresOcr ? " · OCR required" : ""}`
-        : (result.error ?? "Upload failed"),
-    );
-    setBusy(false);
+    try {
+      const result = await uploadSourceFile(file, {
+        acknowledgedInternalNonRegulated: dataAcknowledged,
+        aiProcessingConsent,
+      });
+      setMessage(
+        result.status === "requires_ocr"
+          ? "Source uploaded · OCR required"
+          : "Source uploaded · extraction queued",
+      );
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Upload failed");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function mine() {
     setBusy(true);
-    const response = await fetch("/api/jobs/opportunity-miner", {
+    const response = await fetch("/api/opportunities/mine", {
       method: "POST",
     });
     const result = (await response.json()) as { mode?: string; error?: string };
     setMessage(
       response.ok
-        ? `Opportunity Miner complete · ${result.mode === "synthetic_replay" ? "Synthetic Replay" : "durable run queued"}`
+        ? "Opportunity Miner complete · draft persisted"
         : (result.error ?? "Miner could not start"),
     );
     setBusy(false);
@@ -48,6 +49,25 @@ export function OpportunityActions() {
 
   return (
     <div className="flex flex-col items-end gap-2">
+      <fieldset className="flex flex-wrap justify-end gap-x-3 gap-y-1 text-[11px] text-[#65685f]">
+        <legend className="sr-only">Source processing consent</legend>
+        <label className="flex items-center gap-1.5">
+          <input
+            checked={dataAcknowledged}
+            onChange={(event) => setDataAcknowledged(event.target.checked)}
+            type="checkbox"
+          />
+          Internal, non-regulated data only
+        </label>
+        <label className="flex items-center gap-1.5">
+          <input
+            checked={aiProcessingConsent}
+            onChange={(event) => setAiProcessingConsent(event.target.checked)}
+            type="checkbox"
+          />
+          I consent to AI processing
+        </label>
+      </fieldset>
       <div className="flex gap-2">
         <input
           accept=".pdf,.docx,.xlsx,.csv,.txt,.md,.markdown"
@@ -57,7 +77,7 @@ export function OpportunityActions() {
           type="file"
         />
         <Button
-          disabled={busy}
+          disabled={busy || !dataAcknowledged || !aiProcessingConsent}
           onClick={() => fileInput.current?.click()}
           size="sm"
           variant="secondary"

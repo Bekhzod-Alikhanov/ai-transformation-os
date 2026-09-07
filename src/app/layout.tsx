@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
-import { AppShell } from "@/components/shell/app-shell";
+import { WorkspaceShell } from "@/components/shell/workspace-shell";
 
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Aster AI Transformation OS",
-    template: "%s · Aster AI OS",
+    default: "AI Transformation OS",
+    template: "%s · AI Transformation OS",
   },
   description: "Evidence-led enterprise AI transformation control room.",
 };
@@ -19,7 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AppShell>{children}</AppShell>
+        <WorkspaceShell>{children}</WorkspaceShell>
       </body>
     </html>
   );

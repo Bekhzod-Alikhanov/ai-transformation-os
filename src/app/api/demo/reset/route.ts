@@ -1,11 +1,14 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { createDemoSession } from "@/modules/auth/demo-session";
+import {
+  resetDemoSession,
+  verifyDemoSession,
+} from "@/modules/auth/demo-session";
 import { getRequestActor } from "@/modules/auth/request-actor";
 import { asterData } from "@/modules/demo/aster-data";
 
-export async function POST() {
+export async function POST(request: Request) {
   const actor = await getRequestActor();
   if (!actor || !actor.synthetic || !["owner", "admin"].includes(actor.role))
     return NextResponse.json(
@@ -19,11 +22,25 @@ export async function POST() {
       { status: 503 },
     );
   const store = await cookies();
-  store.set("aster_demo_session", createDemoSession(secret), {
+  const token = store.get("aster_demo_session")?.value;
+  if (!token)
+    return NextResponse.json(
+      { error: "An active demo session is required" },
+      { status: 403 },
+    );
+  const now = Date.now();
+  const resetToken = resetDemoSession(token, secret, now);
+  const session = verifyDemoSession(resetToken, secret, now);
+  const remainingSeconds = Math.max(
+    0,
+    Math.floor((session.expiresAt - now) / 1_000),
+  );
+  store.set("aster_demo_session", resetToken, {
     httpOnly: true,
     sameSite: "lax",
+    secure: new URL(request.url).protocol === "https:",
     path: "/",
-    maxAge: 12 * 60 * 60,
+    maxAge: remainingSeconds,
   });
   return NextResponse.json({
     reset: true,

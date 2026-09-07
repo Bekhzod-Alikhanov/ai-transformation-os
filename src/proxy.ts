@@ -1,24 +1,39 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { createDemoSession } from "@/modules/auth/demo-session";
+const PUBLIC_PATHS = new Set(["/", "/demo"]);
+
+function isPublicPath(pathname: string) {
+  return PUBLIC_PATHS.has(pathname) || pathname.startsWith("/auth/");
+}
+
+function sessionKinds(request: NextRequest) {
+  const names = request.cookies.getAll().map(({ name }) => name);
+  return {
+    demo: names.includes("aster_demo_session"),
+    authenticated: names.some(
+      (name) => name.startsWith("sb-") && name.includes("auth-token"),
+    ),
+  };
+}
 
 export function proxy(request: NextRequest) {
-  const response = NextResponse.next();
-  const secret = process.env.DEMO_SESSION_SECRET;
+  const sessions = sessionKinds(request);
   if (
-    process.env.DEMO_MODE !== "false" &&
-    secret &&
-    !request.cookies.has("aster_demo_session")
+    sessions.demo &&
+    !sessions.authenticated &&
+    !isPublicPath(request.nextUrl.pathname)
   ) {
-    response.cookies.set("aster_demo_session", createDemoSession(secret), {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: request.nextUrl.protocol === "https:",
-      path: "/",
-      maxAge: 12 * 60 * 60,
-    });
+    return NextResponse.redirect(new URL("/demo", request.url));
   }
-  return response;
+  if (!isPublicPath(request.nextUrl.pathname) && !sessions.authenticated) {
+    const signInUrl = new URL("/auth/sign-in", request.url);
+    signInUrl.searchParams.set(
+      "next",
+      `${request.nextUrl.pathname}${request.nextUrl.search}`,
+    );
+    return NextResponse.redirect(signInUrl);
+  }
+  return NextResponse.next();
 }
 
 export const config = {

@@ -22,6 +22,14 @@ export async function POST(
       { error: "Authentication required" },
       { status: 401 },
     );
+  if (!actor.synthetic)
+    return NextResponse.json(
+      {
+        error:
+          "Proof-of-value templates are available only in the synthetic demo",
+      },
+      { status: 403 },
+    );
   const { templateId } = await params;
   if (
     !proofTemplateIds.includes(templateId as (typeof proofTemplateIds)[number])

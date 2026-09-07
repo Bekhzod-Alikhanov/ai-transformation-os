@@ -1,11 +1,8 @@
 import Papa from "papaparse";
 
-export type ParsedLocator =
-  | { type: "line_range"; startLine: number; endLine: number }
-  | { type: "row"; row: number }
-  | { type: "sheet_range"; sheet: string; range: string }
-  | { type: "paragraph"; paragraph: number }
-  | { type: "page"; page: number };
+import type { SourceLocator } from "@/modules/sources/source-types";
+
+export type ParsedLocator = SourceLocator;
 
 export type ParsedSourceItem = {
   content: string;
@@ -44,7 +41,7 @@ function parseDelimited(bytes: Buffer): ParsedSource {
       content: Object.entries(row)
         .map(([key, value]) => `${key}: ${value}`)
         .join("; "),
-      locator: { type: "row", row: index + 2 },
+      locator: { type: "csv_row", row: index + 2 },
     })),
   };
 }
@@ -60,7 +57,7 @@ function parseText(bytes: Buffer, kind: "text" | "markdown"): ParsedSource {
     items: [
       {
         content,
-        locator: { type: "line_range", startLine: 1, endLine: lineCount },
+        locator: { type: "text_line", startLine: 1, endLine: lineCount },
       },
     ],
   };
@@ -87,7 +84,7 @@ async function parseWorkbook(bytes: Buffer): Promise<ParsedSource> {
       items.push({
         content: cells.join(" | "),
         locator: {
-          type: "sheet_range",
+          type: "spreadsheet_cell",
           sheet: sheet.name,
           range: `A${rowNumber}:${sheet.getColumn(row.cellCount || 1).letter}${rowNumber}`,
         },
@@ -114,12 +111,17 @@ async function parseDocument(bytes: Buffer): Promise<ParsedSource> {
     kind: "docx",
     items: paragraphs.map((content, index) => ({
       content,
-      locator: { type: "paragraph", paragraph: index + 1 },
+      locator: { type: "docx_section", section: `Section ${index + 1}` },
     })),
     untrusted: true,
     requiresOcr: false,
     warnings: result.messages.map((message) => message.message),
   };
+}
+
+export function requiresPdfOcr(pageText: readonly string[]) {
+  const characters = pageText.reduce((sum, content) => sum + content.length, 0);
+  return characters / Math.max(1, pageText.length) < 80;
 }
 
 async function parsePdf(bytes: Buffer): Promise<ParsedSource> {
@@ -135,10 +137,12 @@ async function parsePdf(bytes: Buffer): Promise<ParsedSource> {
       .join(" ")
       .replace(/\s+/g, " ")
       .trim();
-    items.push({ content, locator: { type: "page", page: pageNumber } });
+    items.push({
+      content,
+      locator: { type: "pdf_page", page: pageNumber },
+    });
   }
-  const characters = items.reduce((sum, item) => sum + item.content.length, 0);
-  const requiresOcr = characters / Math.max(1, document.numPages) < 80;
+  const requiresOcr = requiresPdfOcr(items.map((item) => item.content));
   return {
     kind: "pdf",
     items,

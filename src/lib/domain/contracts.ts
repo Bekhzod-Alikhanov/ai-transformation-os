@@ -140,3 +140,22 @@ export type AgentRunResult<TOutput> = {
 
 export type ValueRecommendation =
   "scale" | "scale_with_conditions" | "fix" | "pause" | "stop";
+
+export type {
+  AgentEvent,
+  AgentRun,
+  Approval,
+  AssumptionRevision,
+  AuditEvent,
+  ClaimConflict,
+  EvidenceCandidate,
+  EvidenceReview,
+  ExecutionReceipt,
+  IngestionRun,
+  OpportunityDraft,
+  ProviderCredentialSummary,
+  Source,
+  SourceItem,
+  SourceLocator,
+  SourceStatus,
+} from "@/modules/sources/source-types";

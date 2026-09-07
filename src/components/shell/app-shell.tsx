@@ -30,29 +30,75 @@ import type { ReactNode } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import type {
+  WorkspaceCapability,
+  WorkspaceContext,
+} from "@/modules/auth/workspace-context";
 
-type NavigationItem = { label: string; href: string; icon: LucideIcon };
+type AppNavigationRoute =
+  Route | Route<`/processes/${string}`> | Route<`/use-cases/${string}`>;
+
+type NavigationItem = {
+  label: string;
+  href: AppNavigationRoute;
+  icon: LucideIcon;
+  capability: WorkspaceCapability;
+  demoOnly?: boolean;
+};
 type NavigationGroup = { label: string; items: NavigationItem[] };
 
 const navigation: NavigationGroup[] = [
   {
     label: "Discover",
     items: [
-      { label: "Overview", href: "/", icon: LayoutDashboard },
-      { label: "Opportunities", href: "/opportunities", icon: Search },
+      {
+        label: "Overview",
+        href: "/",
+        icon: LayoutDashboard,
+        capability: "overview",
+      },
+      {
+        label: "Evidence desk",
+        href: "/evidence" as Route,
+        icon: Search,
+        capability: "opportunities",
+      },
+      {
+        label: "Opportunities",
+        href: "/opportunities",
+        icon: Search,
+        capability: "opportunities",
+      },
       {
         label: "Processes",
         href: "/processes/client-status-reporting",
         icon: Workflow,
+        capability: "processes",
       },
     ],
   },
   {
     label: "Decide",
     items: [
-      { label: "Portfolio", href: "/portfolio", icon: Gauge },
-      { label: "Decision Room", href: "/decision-room", icon: ShieldCheck },
-      { label: "Model Lab", href: "/model-lab", icon: FlaskConical },
+      {
+        label: "Portfolio",
+        href: "/portfolio",
+        icon: Gauge,
+        capability: "portfolio",
+      },
+      {
+        label: "Decision Room",
+        href: "/decision-room",
+        icon: ShieldCheck,
+        capability: "decisions",
+      },
+      {
+        label: "Model Lab",
+        href: "/model-lab",
+        icon: FlaskConical,
+        capability: "model_lab",
+        demoOnly: true,
+      },
     ],
   },
   {
@@ -62,24 +108,77 @@ const navigation: NavigationGroup[] = [
         label: "Agent blueprints",
         href: "/use-cases/client-status-reporting?view=blueprint",
         icon: Bot,
+        capability: "agent_blueprints",
       },
-      { label: "Pilots", href: "/pilots", icon: BriefcaseBusiness },
-      { label: "Automations", href: "/automations", icon: Zap },
+      {
+        label: "Pilots",
+        href: "/pilots",
+        icon: BriefcaseBusiness,
+        capability: "pilots",
+        demoOnly: true,
+      },
+      {
+        label: "Automations",
+        href: "/automations",
+        icon: Zap,
+        capability: "automations",
+        demoOnly: true,
+      },
     ],
   },
   {
     label: "Measure",
     items: [
-      { label: "Value", href: "/value", icon: CircleDollarSign },
-      { label: "Activity", href: "/activity", icon: Activity },
+      {
+        label: "Realised value",
+        href: "/value",
+        icon: CircleDollarSign,
+        capability: "realised_value",
+        demoOnly: true,
+      },
+      {
+        label: "Activity",
+        href: "/activity",
+        icon: Activity,
+        capability: "activity",
+      },
     ],
   },
   {
     label: "Govern",
     items: [
-      { label: "Approvals", href: "/approvals", icon: GitPullRequestArrow },
-      { label: "Integrations", href: "/integrations", icon: Network },
-      { label: "Settings", href: "/settings", icon: Settings },
+      {
+        label: "Approvals",
+        href: "/approvals",
+        icon: GitPullRequestArrow,
+        capability: "approvals",
+      },
+      {
+        label: "Integrations",
+        href: "/integrations",
+        icon: Network,
+        capability: "integrations",
+      },
+      {
+        label: "Settings",
+        href: "/settings",
+        icon: Settings,
+        capability: "settings",
+      },
+    ],
+  },
+];
+
+const syntheticReplayNavigation: NavigationGroup[] = [
+  {
+    label: "Synthetic Replay",
+    items: [
+      {
+        label: "Synthetic Replay",
+        href: "/demo",
+        icon: Sparkles,
+        capability: "overview",
+      },
     ],
   },
 ];
@@ -89,22 +188,70 @@ function isActive(pathname: string, href: string) {
   return pathname.startsWith(href.split("?")[0]!);
 }
 
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({
+  children,
+  workspace,
+}: {
+  children: ReactNode;
+  workspace: WorkspaceContext;
+}) {
   const pathname = usePathname();
+  const organisationName =
+    workspace.mode === "synthetic_replay"
+      ? "Sia Partners Synthetic Replay"
+      : "AI Transformation OS";
+  const visibleNavigation = (
+    workspace.mode === "synthetic_replay"
+      ? syntheticReplayNavigation
+      : navigation
+  )
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) =>
+        workspace.capabilities.includes(item.capability),
+      ),
+    }))
+    .filter((group) => group.items.length > 0);
+  const initials = workspace.displayName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+  const mobileNavigation: Pick<NavigationItem, "label" | "href" | "icon">[] =
+    workspace.mode === "synthetic_replay"
+      ? [{ label: "Synthetic Replay", href: "/demo", icon: Sparkles }]
+      : [
+          { label: "Home", href: "/", icon: AppWindow },
+          { label: "Discover", href: "/opportunities", icon: Search },
+          { label: "Decide", href: "/decision-room", icon: Waypoints },
+          workspace.capabilities.includes("pilots")
+            ? {
+                label: "Deliver · Demo",
+                href: "/pilots",
+                icon: BriefcaseBusiness,
+              }
+            : {
+                label: "Deliver",
+                href: "/use-cases/client-status-reporting?view=blueprint",
+                icon: Bot,
+              },
+          { label: "Govern", href: "/approvals", icon: ShieldCheck },
+        ];
 
   return (
     <div className="min-h-screen bg-[#f3f2ec] text-[#20221e]">
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-[244px] flex-col border-r border-[#dadbd4] bg-[#f9f8f3] lg:flex">
         <Link
           className="flex h-[72px] items-center gap-3 border-b border-[#e2e2dc] px-5"
-          href="/"
+          href={workspace.mode === "synthetic_replay" ? "/demo" : "/"}
         >
           <span className="grid size-9 place-items-center rounded-md bg-[#20221e] text-white">
             <Boxes className="size-[18px]" strokeWidth={1.9} />
           </span>
           <span className="leading-tight">
             <span className="block text-[15px] font-semibold tracking-[-0.02em]">
-              Aster AI OS
+              Transformation OS
             </span>
             <span className="block text-[11px] text-[#65685f]">
               Transformation control
@@ -116,7 +263,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           aria-label="Primary navigation"
           className="flex-1 overflow-y-auto px-3 py-5"
         >
-          {navigation.map((group) => (
+          {visibleNavigation.map((group) => (
             <div className="mb-5" key={group.label}>
               <p className="mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#65685f]">
                 {group.label}
@@ -132,11 +279,16 @@ export function AppShell({ children }: { children: ReactNode }) {
                         "group flex h-9 items-center gap-3 rounded-md px-2.5 text-[13px] font-medium text-[#5d6058] transition-colors hover:bg-[#eeeee8] hover:text-[#20221e]",
                         active && "bg-[#e8ebf8] text-[#2849bb]",
                       )}
-                      href={item.href as Route}
+                      href={item.href}
                       key={item.label}
                     >
                       <Icon className="size-4" strokeWidth={active ? 2 : 1.7} />
                       {item.label}
+                      {item.demoOnly ? (
+                        <span className="ml-auto text-[9px] font-semibold uppercase tracking-wide text-[#8a641b]">
+                          Demo only
+                        </span>
+                      ) : null}
                     </Link>
                   );
                 })}
@@ -148,12 +300,22 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="border-t border-[#e2e2dc] p-3">
           <div className="rounded-md border border-[#dedfd8] bg-white p-3">
             <div className="mb-2 flex items-center justify-between">
-              <Badge tone="value">Synthetic enterprise</Badge>
+              <Badge
+                tone={
+                  workspace.mode === "synthetic_replay" ? "value" : "action"
+                }
+              >
+                {workspace.mode === "synthetic_replay"
+                  ? "Synthetic Replay"
+                  : "Live workspace"}
+              </Badge>
               <Sparkles className="size-3.5 text-[#25806a]" />
             </div>
-            <p className="text-xs font-semibold">Aster Financial Group</p>
+            <p className="text-xs font-semibold">{organisationName}</p>
             <p className="mt-1 text-[11px] leading-4 text-[#65685f]">
-              Safe replay mode · no external actions
+              {workspace.mode === "synthetic_replay"
+                ? "Local-only · no provider or database actions"
+                : `${workspace.role.replaceAll("_", " ")} membership`}
             </p>
           </div>
         </div>
@@ -165,42 +327,55 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="grid size-9 place-items-center rounded-md bg-[#20221e] text-white">
               <Boxes className="size-4" />
             </span>
-            <span className="text-sm font-semibold">Aster AI OS</span>
+            <span className="text-sm font-semibold">Transformation OS</span>
           </div>
           <Link
             className="hidden h-9 w-72 items-center gap-2 rounded-md border border-[#dddeda] bg-white px-3 text-left text-xs text-[#65685f] sm:flex"
-            href="/opportunities"
+            href={
+              workspace.mode === "synthetic_replay" ? "/demo" : "/opportunities"
+            }
           >
-            <Search className="size-3.5" /> Search evidence, cases, pilots…
+            <Search className="size-3.5" />{" "}
+            {workspace.mode === "synthetic_replay"
+              ? "Search local replay…"
+              : "Search evidence, cases, pilots…"}
             <kbd className="ml-auto rounded border border-[#dedfd9] bg-[#f7f7f3] px-1.5 py-0.5 font-sans text-[10px]">
               ⌘K
             </kbd>
           </Link>
           <div className="flex items-center gap-2">
-            <Link
-              aria-label="Open Control Tower"
-              className="hidden h-9 items-center gap-2 rounded-md border border-[#ccd4f4] bg-[#f4f6ff] px-3 text-xs font-semibold text-[#3157d5] sm:flex"
-              href="/decision-room#control-tower"
-            >
-              <Sparkles className="size-3.5" /> Control Tower
-            </Link>
-            <button
-              aria-label="Notifications"
-              className="grid size-9 place-items-center rounded-md border border-[#dedfd9] bg-white text-[#64675f]"
-              type="button"
-            >
-              <Bell className="size-4" />
-            </button>
-            <button
-              className="flex h-9 items-center gap-2 rounded-md border border-[#dedfd9] bg-white pl-1.5 pr-2 text-xs font-medium"
-              type="button"
-            >
-              <span className="grid size-6 place-items-center rounded bg-[#dfe6ff] text-[10px] font-bold text-[#3157d5]">
-                MC
-              </span>
-              <span className="hidden sm:inline">Maya Chen</span>
-              <ChevronDown className="size-3" />
-            </button>
+            {workspace.mode !== "synthetic_replay" ? (
+              <Link
+                aria-label="Open Control Tower"
+                className="hidden h-9 items-center gap-2 rounded-md border border-[#ccd4f4] bg-[#f4f6ff] px-3 text-xs font-semibold text-[#3157d5] sm:flex"
+                href="/decision-room#control-tower"
+              >
+                <Sparkles className="size-3.5" /> Control Tower
+              </Link>
+            ) : null}
+            {workspace.mode !== "synthetic_replay" ? (
+              <button
+                aria-label="Notifications"
+                className="grid size-9 place-items-center rounded-md border border-[#dedfd9] bg-white text-[#64675f]"
+                type="button"
+              >
+                <Bell className="size-4" />
+              </button>
+            ) : null}
+            {workspace.mode !== "synthetic_replay" ? (
+              <button
+                className="flex h-9 items-center gap-2 rounded-md border border-[#dedfd9] bg-white pl-1.5 pr-2 text-xs font-medium"
+                type="button"
+              >
+                <span className="grid size-6 place-items-center rounded bg-[#dfe6ff] text-[10px] font-bold text-[#3157d5]">
+                  {initials}
+                </span>
+                <span className="hidden sm:inline">
+                  {workspace.displayName}
+                </span>
+                <ChevronDown className="size-3" />
+              </button>
+            ) : null}
           </div>
         </header>
 
@@ -212,15 +387,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           aria-label="Mobile navigation"
           className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-[#dadbd4] bg-[#faf9f5] px-2 py-1 lg:hidden"
         >
-          {(
-            [
-              { label: "Home", href: "/", icon: AppWindow },
-              { label: "Discover", href: "/opportunities", icon: Search },
-              { label: "Decide", href: "/decision-room", icon: Waypoints },
-              { label: "Deliver", href: "/pilots", icon: BriefcaseBusiness },
-              { label: "Govern", href: "/approvals", icon: ShieldCheck },
-            ] as const
-          ).map((item) => {
+          {mobileNavigation.map((item) => {
             const Icon = item.icon;
             return (
               <Link

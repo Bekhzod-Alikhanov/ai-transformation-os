@@ -10,6 +10,11 @@ export async function GET() {
       { error: "Authentication required" },
       { status: 401 },
     );
+  if (!actor.synthetic)
+    return NextResponse.json(
+      { error: "This export is available only in the synthetic demo" },
+      { status: 403 },
+    );
   const bytes = await generateDecisionBrief();
   return new NextResponse(new Uint8Array(bytes), {
     headers: {

@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Bot,
   CheckCircle2,
@@ -8,12 +10,14 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Surface } from "@/components/ui/surface";
+import { useWorkspace } from "@/modules/auth/workspace-provider";
 import { agentActivity } from "@/modules/demo/aster-data";
 
 export function ActivityFeed() {
+  const workspace = useWorkspace();
   const audit = [
     {
-      actor: "Maya Chen",
+      actor: workspace.displayName,
       event: "Approved calendar event revision 3",
       object: "Pilot steering committee",
       time: "23 min ago",

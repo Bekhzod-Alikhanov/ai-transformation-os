@@ -32,7 +32,7 @@ export function SignInForm() {
     setBusy(true);
     const response = await fetch("/api/auth/demo", { method: "POST" });
     if (response.ok) {
-      router.push("/");
+      router.push("/demo");
       router.refresh();
     } else {
       setMessage(

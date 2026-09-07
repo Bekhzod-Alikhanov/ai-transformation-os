@@ -1,26 +1,35 @@
-import { Badge } from "@/components/ui/badge";
+import { redirect } from "next/navigation";
+
 import { SectionHeader } from "@/components/ui/surface";
 import { OpportunityActions } from "@/modules/opportunities/opportunity-actions";
-import { OpportunityTable } from "@/modules/opportunities/opportunity-table";
+import { loadOpportunityDraftData } from "@/modules/opportunities/opportunity-drafts-data.server";
+import { OpportunityDrafts } from "@/modules/opportunities/opportunity-drafts";
+import { requireWorkspaceCapability } from "@/modules/auth/workspace-routes.server";
+import { getRequestActor } from "@/modules/auth/request-actor";
 
 export const metadata = { title: "Opportunities" };
 
-export default function OpportunitiesPage() {
-  return (
-    <div className="mx-auto max-w-[1480px] space-y-6 pb-16">
-      <SectionHeader
-        eyebrow="Discover"
-        title="Opportunity portfolio"
-        description="27 evidence-backed opportunities across eight Aster business units. Classification is deterministic; evidence sufficiency remains visible as a separate decision signal."
-        action={<OpportunityActions />}
-      />
-      <div className="flex flex-wrap gap-2">
-        <Badge tone="value">27 opportunities</Badge>
-        <Badge tone="action">$8.4M annual value</Badge>
-        <Badge tone="condition">7 need evidence</Badge>
-        <Badge tone="risk">3 policy stops</Badge>
+export default async function OpportunitiesPage() {
+  const workspace = await requireWorkspaceCapability("opportunities");
+  if (workspace.mode === "live") {
+    const actor = await getRequestActor();
+    const data = await loadOpportunityDraftData(
+      workspace,
+      actor?.organisationId === workspace.organisationId
+        ? actor.userId
+        : undefined,
+    );
+    return (
+      <div className="mx-auto max-w-[1080px] space-y-6 pb-16">
+        <SectionHeader
+          eyebrow="Discover"
+          title="Opportunity intake"
+          description="Mine accepted, conflict-safe evidence into editable drafts, then merge, reject, or promote each draft through persisted transitions."
+          action={<OpportunityActions />}
+        />
+        <OpportunityDrafts {...data} />
       </div>
-      <OpportunityTable />
-    </div>
-  );
+    );
+  }
+  redirect("/demo");
 }

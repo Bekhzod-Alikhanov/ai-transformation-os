@@ -4,11 +4,13 @@ import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { SectionHeader } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
+import { requireWorkspaceCapability } from "@/modules/auth/workspace-routes.server";
 import { PilotPortfolio } from "@/modules/pilots/pilot-portfolio";
 
 export const metadata = { title: "Pilots" };
 
-export default function PilotsPage() {
+export default async function PilotsPage() {
+  await requireWorkspaceCapability("pilots");
   return (
     <div className="mx-auto max-w-[1480px] space-y-6 pb-16">
       <SectionHeader

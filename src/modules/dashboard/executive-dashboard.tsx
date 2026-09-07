@@ -1,3 +1,5 @@
+"use client";
+
 import {
   ArrowRight,
   CircleCheck,
@@ -14,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Surface } from "@/components/ui/surface";
 import { asterData } from "@/modules/demo/aster-data";
 import { formatCompactCurrency } from "@/lib/utils";
+import { useWorkspace } from "@/modules/auth/workspace-provider";
 
 const metrics = [
   {
@@ -75,6 +78,24 @@ const decisions = [
 ] as const;
 
 export function ExecutiveDashboard() {
+  const workspace = useWorkspace();
+  if (workspace.mode === "live") {
+    return (
+      <div className="mx-auto max-w-[1480px] space-y-5 pb-16">
+        <Badge tone="action">Live workspace</Badge>
+        <h1 className="text-3xl font-semibold tracking-[-0.045em] text-[#20221e] sm:text-[2.35rem]">
+          Good morning, {workspace.displayName}.
+        </h1>
+        <Surface className="p-6">
+          <h2 className="text-lg font-semibold">AI Transformation OS</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-[#686b62]">
+            Connect evidence sources to begin building your live transformation
+            portfolio. Synthetic Aster results remain isolated under /demo.
+          </p>
+        </Surface>
+      </div>
+    );
+  }
   return (
     <div className="mx-auto max-w-[1480px] space-y-7 pb-16">
       <section className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
@@ -86,7 +107,7 @@ export function ExecutiveDashboard() {
             </span>
           </div>
           <h1 className="text-3xl font-semibold tracking-[-0.045em] text-[#20221e] sm:text-[2.35rem]">
-            Good morning, Maya.
+            Good morning, {workspace.displayName}.
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-[#686b62]">
             Three decisions can materially change Aster’s AI portfolio this

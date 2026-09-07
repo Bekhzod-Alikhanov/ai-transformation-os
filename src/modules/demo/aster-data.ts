@@ -184,7 +184,7 @@ export const opportunities: Opportunity[] = [
       originalAnnualValue: 1_600_000,
       summary:
         "Replace fragmented manual status aggregation with evidence-linked synthesis, controlled review, and automated publication.",
-      owner: "Maya Chen · Commercial Transformation",
+      owner: "Commercial Transformation · Demo owner",
       feasibility: 81,
       risk: 39,
       dataReadiness: 76,
@@ -212,7 +212,7 @@ export const opportunities: Opportunity[] = [
       feasibility: 78,
       risk: 58,
       status: "pilot",
-      owner: "Jordan Wells · Service Operations",
+      owner: "Service Operations · Demo owner",
     },
   ),
   opportunity(
