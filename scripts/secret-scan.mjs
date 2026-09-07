@@ -6,6 +6,7 @@ const root = process.cwd();
 const ignored = new Set([
   ".git",
   ".next",
+  ".gstack",
   "node_modules",
   "coverage",
   "playwright-report",

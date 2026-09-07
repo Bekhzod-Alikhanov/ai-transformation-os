@@ -7,6 +7,7 @@ export default defineConfig([
   ...nextTypeScript,
   globalIgnores([
     ".next/**",
+    ".gstack/",
     "coverage/**",
     "playwright-report/**",
     "test-results/**",

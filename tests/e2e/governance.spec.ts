@@ -1,5 +1,21 @@
 import { expect, test } from "@playwright/test";
 
+test("public entry opens the replay without requiring email", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  await expect(page).toHaveURL(/\/demo$/);
+  await expect(
+    page.getByRole("heading", { name: "Evidence to governed decision" }),
+  ).toBeVisible();
+  await expect(page.getByLabel("Work email")).toHaveCount(0);
+
+  await page.goto("/auth/sign-in");
+  await expect(page).toHaveURL(/\/demo$/);
+  await expect(page.getByLabel("Work email")).toHaveCount(0);
+});
+
 test("demo sessions cannot open legacy workspace surfaces", async ({
   page,
 }) => {

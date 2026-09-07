@@ -21,16 +21,10 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("HomePage", () => {
-  it("presents magic-link sign in when no workspace is resolved", async () => {
+  it("sends signed-out visitors directly to the public replay", async () => {
     vi.mocked(getWorkspaceContext).mockResolvedValue(null);
 
-    render(await HomePage());
-
-    expect(screen.getByRole("textbox", { name: "Work email" })).toBeVisible();
-    expect(
-      screen.getByRole("button", { name: /send magic link/i }),
-    ).toBeVisible();
-    expect(screen.queryByText("$8.4M")).not.toBeInTheDocument();
+    await expect(HomePage()).rejects.toThrow("NEXT_REDIRECT:/demo");
   });
 
   it("does not present Aster metrics inside a live workspace", async () => {

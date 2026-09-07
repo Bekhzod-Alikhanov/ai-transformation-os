@@ -1,7 +1,7 @@
-import { SignInForm } from "@/modules/auth/sign-in-form";
+import { redirect } from "next/navigation";
 
 export const metadata = { title: "Sign in" };
 
 export default function SignInPage() {
-  return <SignInForm />;
+  redirect("/demo");
 }
