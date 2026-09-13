@@ -14,6 +14,8 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { BusinessCase, Metric } from "./business-case";
+import { GuidedTour } from "./guided-tour";
+import { tourSteps, type TourLanguage } from "./tour-steps";
 import {
   DeliveryPanel,
   EvidencePanel,
@@ -64,6 +66,10 @@ export function DeliveryWorkbench() {
   const [resetOpen, setResetOpen] = useState(false);
   const [corrupt, setCorrupt] = useState(false);
   const [restoration, setRestoration] = useState(0);
+  const [tourIndex, setTourIndex] = useState<number | null>(null);
+  const [tourPaused, setTourPaused] = useState(false);
+  const [tourLanguage, setTourLanguage] = useState<TourLanguage>("ru");
+  const tourTrigger = useRef<HTMLButtonElement>(null);
   const latest = useRef(workspace);
   const resetTrigger = useRef<HTMLButtonElement>(null);
   const project = workspace.projects.find((p) => p.id === projectId)!;
@@ -164,13 +170,31 @@ export function DeliveryWorkbench() {
     }
   }
   function navigate(index: number) {
+    if (tourIndex !== null) setTourPaused(true);
     setSection(index);
     setSponsor(false);
+  }
+  function moveTour(index: number) {
+    const step = tourSteps[index];
+    if (!step) return;
+    setTourIndex(index);
+    setTourPaused(false);
+    setProjectId(step.project);
+    setSection(step.section);
+    setSponsor(false);
+  }
+  function closeTour() {
+    setTourIndex(null);
+    setTourPaused(false);
+    tourTrigger.current?.focus();
   }
   const gate = assessProject(project);
 
   return (
-    <div className="dw-shell" data-replay-ready={ready}>
+    <div
+      className={"dw-shell" + (tourIndex !== null ? " dw-tour-active" : "")}
+      data-replay-ready={ready}
+    >
       <a href="#engagement-content" className="dw-skip">
         Skip to engagement content
       </a>
@@ -193,6 +217,7 @@ export function DeliveryWorkbench() {
               aria-pressed={p.id === projectId}
               className={p.id === projectId ? "active" : ""}
               onClick={() => {
+                if (tourIndex !== null) setTourPaused(true);
                 setProjectId(p.id);
                 setSection(0);
                 setNotice("");
@@ -242,13 +267,36 @@ export function DeliveryWorkbench() {
             <span className="dw-topbar-divider">/</span> Browser-local workspace
           </div>
           <div className="dw-toggle" aria-label="Presentation view">
-            <button aria-pressed={!sponsor} onClick={() => setSponsor(false)}>
+            <button
+              aria-pressed={!sponsor}
+              onClick={() => {
+                if (tourIndex !== null) setTourPaused(true);
+                setSponsor(false);
+              }}
+            >
               Delivery view
             </button>
-            <button aria-pressed={sponsor} onClick={() => setSponsor(true)}>
+            <button
+              aria-pressed={sponsor}
+              onClick={() => {
+                if (tourIndex !== null) setTourPaused(true);
+                setSponsor(true);
+              }}
+            >
               Sponsor view
             </button>
           </div>
+          <button
+            ref={tourTrigger}
+            className="dw-btn dw-tour-launch"
+            disabled={!ready}
+            onClick={() => moveTour(tourIndex ?? 0)}
+            aria-label="Start guided tour / Начать тур"
+          >
+            {tourIndex === null
+              ? "Start guided tour · Начать тур"
+              : "Continue tour · Продолжить"}
+          </button>
         </header>
         <main id="engagement-content" className="dw-main" tabIndex={-1}>
           <div className="dw-project-heading">
@@ -442,6 +490,18 @@ export function DeliveryWorkbench() {
           </footer>
         </main>
       </div>
+      {tourIndex !== null ? (
+        <GuidedTour
+          index={tourIndex}
+          paused={tourPaused}
+          language={tourLanguage}
+          onMove={moveTour}
+          onPause={() => setTourPaused(true)}
+          onResume={() => moveTour(tourIndex)}
+          onClose={closeTour}
+          onLanguage={setTourLanguage}
+        />
+      ) : null}
       <Dialog.Root open={resetOpen} onOpenChange={setResetOpen}>
         <Dialog.Portal>
           <Dialog.Overlay className="dw-dialog-overlay" />
@@ -471,6 +531,7 @@ export function DeliveryWorkbench() {
                     setProjectId("support");
                     setSection(0);
                     setSponsor(false);
+                    setTourIndex(null);
                     setResetOpen(false);
                     setNotice(
                       "Both synthetic projects reset. Local changes are recoverable only from your downloaded backup.",
@@ -504,7 +565,7 @@ function Overview({
   const latest = project.decisions.at(-1);
   return (
     <div className="dw-stack">
-      <div className="dw-overview-intro">
+      <div className="dw-overview-intro" data-tour="brief">
         <div>
           <span className="dw-eyebrow">
             {sponsor

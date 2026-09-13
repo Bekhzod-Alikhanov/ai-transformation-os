@@ -221,7 +221,7 @@ export function BusinessCase({
           </p>
         </div>
       </div>
-      <div className="dw-option-grid">
+      <div className="dw-option-grid" data-tour="options">
         {(["rules", "copilot", "rollout"] as const).map((option) => {
           const inputs =
             project.option === option
@@ -263,7 +263,7 @@ export function BusinessCase({
           );
         })}
       </div>
-      <div className="dw-kpis six">
+      <div className="dw-kpis six" data-tour="economics">
         <Metric
           label="Annual hours released"
           value={number(result.annualHoursSaved)}
@@ -416,7 +416,7 @@ export function BusinessCase({
           </div>
         </section>
       </div>
-      <section className="dw-panel">
+      <section className="dw-panel" data-tour="assumptions">
         <div className="dw-panel-title">
           <div>
             <h3>Assumption register</h3>

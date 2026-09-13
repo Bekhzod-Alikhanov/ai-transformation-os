@@ -30,6 +30,8 @@ Open [the local demo](http://localhost:3000/demo). For deployment, configure `DE
 
 Use [the five-minute walkthrough](docs/interview-walkthrough.md). Lead with the client's decision, demonstrate one assumption change and a setback, then export the resulting steering pack. All seed sources, model suggestions and sample pilot outcomes are explicitly synthetic.
 
+For an on-screen presentation, select **Start guided tour · Начать тур** in the demo toolbar. The ten-step tour navigates both projects, highlights the relevant surface, and provides “what to show” and “what to say” notes in Russian or English. Allow 5–7 minutes plus discussion. Notes are visible to the audience when screen sharing. The tour never edits records or executes actions: changes and decisions remain yours. Manual navigation pauses the tour; Resume returns to the same step, and Escape closes it. Reloading ends the tour but preserves previously saved demo changes.
+
 ## Important boundaries
 
 - No live AI calls, Google sync, outbound actions or external approvals. Local fixture scores demonstrate an evaluation method, not model performance.

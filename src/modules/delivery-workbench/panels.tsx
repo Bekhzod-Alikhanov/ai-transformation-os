@@ -58,7 +58,7 @@ export function EvidencePanel({ project, change }: PanelProps) {
           {project.evidence.length} accepted
         </span>
       </div>
-      <div className="dw-evidence-layout">
+      <div className="dw-evidence-layout" data-tour="evidence">
         <section
           className="dw-panel dw-source-list"
           aria-label="Evidence sources"
@@ -323,7 +323,7 @@ export function SolutionPanel({ project, change }: PanelProps) {
           </div>
         ))}
       </div>
-      <div className="dw-two-column">
+      <div className="dw-two-column" data-tour="examples">
         <section className="dw-panel">
           <div className="dw-panel-title">
             <h3>
@@ -413,7 +413,7 @@ export function SolutionPanel({ project, change }: PanelProps) {
           </ul>
         </section>
       </div>
-      <section className="dw-panel">
+      <section className="dw-panel" data-tour="evaluation">
         <div className="dw-panel-title">
           <div>
             <h3>Evaluate the assisted workflow</h3>
@@ -554,7 +554,7 @@ export function DeliveryPanel({ project, change }: PanelProps) {
           note="Forecast investment less actual spend"
         />
       </div>
-      <section className="dw-panel">
+      <section className="dw-panel" data-tour="delivery">
         <div className="dw-panel-title">
           <h3>90-day delivery plan</h3>
           <span>Dependencies enforced when completing work</span>
@@ -798,7 +798,7 @@ export function OutcomesPanel({
           </p>
         </div>
       </div>
-      <div className="dw-two-column">
+      <div className="dw-two-column" data-tour="pilot">
         <section className="dw-panel">
           <div className="dw-panel-title">
             <h3>Pilot measurement record</h3>
@@ -978,7 +978,7 @@ export function OutcomesPanel({
           </div>
         </section>
       </div>
-      <section className="dw-panel">
+      <section className="dw-panel" data-tour="decision">
         <div className="dw-panel-title">
           <div>
             <h3>Record a governed decision</h3>
