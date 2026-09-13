@@ -30,5 +30,13 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    ".gstack",
+    ".pnpm-store",
+    ".superpowers",
+    ".agents",
+    ".codex",
+    ".vercel"
+  ]
 }

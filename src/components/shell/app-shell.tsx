@@ -188,7 +188,15 @@ function isActive(pathname: string, href: string) {
   return pathname.startsWith(href.split("?")[0]!);
 }
 
-export function AppShell({
+export function AppShell(props: {
+  children: ReactNode;
+  workspace: WorkspaceContext;
+}) {
+  if (props.workspace.mode === "synthetic_replay") return <>{props.children}</>;
+  return <AuthenticatedAppShell {...props} />;
+}
+
+function AuthenticatedAppShell({
   children,
   workspace,
 }: {

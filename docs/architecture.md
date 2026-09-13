@@ -1,14 +1,31 @@
 # Architecture
 
-## Credential-free Sia demo
+## Current interview release: two browser-local engagements
 
-`/demo` is a deliberately separate, browser-local Synthetic Replay. It seeds exactly Support Triage, Executive Reporting, and Procurement Analysis for a demo organisation/session. A versioned `DemoWorkspaceStore` owns all operational replay state: accepted evidence, immutable assumption revisions, deterministic economics and simulation summaries, citation-validated committee events, CFO actions, decisions, activity, My Work, and exports.
+`/demo` renders `delivery-workbench/workbench.tsx` through a compatibility wrapper. Exactly two engagements are served: Support Operations Copilot and Executive Reporting Automation. Beck is the demonstration lead. Neither case represents a real client engagement or a Sia product.
 
-The demo calls no provider, API, database, background workflow, OAuth, or model runtime. Browser storage is scoped to `sia-synthetic-replay:<organisationId>`, handles malformed/obsolete records by restoring the seed, reacts to cross-tab storage updates, and supports a stable reset. The `/demo` shell intentionally exposes only the local replay route; provider-dependent navigation and controls are hidden.
+The server only establishes the existing signed synthetic session. Source review, CSV parsing, calculation, fixture evaluation, delivery tracking, measurement and decisions run locally. The validated `beck-delivery-workbench:v1` browser record survives session renewal. It is not tenant storage and is not suitable for confidential material. Storage failures leave the previous record unchanged; corrupt records are preserved for backup and explicit recovery. Restore/reset affects only this key; legacy replay data is untouched.
 
-The interactive boundary is a narrowly scoped Client Component because it needs browser storage and event handlers. Its data is seeded locally and all server-to-client props are serializable. The deterministic financial and simulation engines are reused directly; simulations retain summaries, histogram buckets, and seed, never raw samples.
+Financial inputs have one deterministic Decimal.js path, including monthly ramp, investment, OPEX, economic and cash-only NPV. Sensitivity and scenarios call the same engine. A Web Worker runs 10,000 seeded triangular samples; displayed summaries are temporary and labeled by revision. Simulation is not a production background job. Fixture accuracy is calculated against inspectable expected labels, not presented as measured model quality. Hard gates prohibit scale without evidence, evaluation, positive economics, quality, adoption and human controls.
 
-## Production topology
+Decisions capture append-only snapshots of inputs, evidence and measurements. Subsequent changes retain the old snapshot and mark it stale. Local history is not tamper-proof: a browser owner can edit or restore it. Markdown and editable PowerPoint exports use the current project record, not the legacy Aster catalogue.
+
+```mermaid
+flowchart LR
+  CSV[Local CSV / workshop notes] --> E[Reviewed evidence]
+  E --> C[Versioned case inputs]
+  C --> F[Decimal financial engine]
+  C --> W[Seeded simulation worker]
+  E --> V[Inspectable fixture evaluation]
+  F --> G[Deterministic decision gates]
+  V --> G
+  P[Pilot measurements / delivery risks] --> G
+  G --> D[Beck's decision + snapshot]
+  D --> S[Validated browser record]
+  S --> X[Current brief / editable steering pack]
+```
+
+## Future production topology — not provisioned or accepted in this release
 
 The platform is a modular monolith: one deployable Next.js application with strict domain boundaries and durable background execution. Postgres is the system of record; JSONB is limited to versioned schemas, immutable payload snapshots, structured model output, and connector metadata.
 

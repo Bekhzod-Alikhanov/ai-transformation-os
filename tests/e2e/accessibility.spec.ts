@@ -1,26 +1,37 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-
-test("the local Synthetic Replay is keyboard-accessible without serious violations", async ({
+test("review and decision surfaces have no WCAG A/AA automated violations", async ({
   page,
 }) => {
-  const session = await page.request.post("/api/auth/demo");
-  expect(session.ok()).toBeTruthy();
+  test.setTimeout(120000);
   await page.goto("/demo");
-  await expect(page.locator('[data-replay-ready="true"]')).toBeVisible({
-    timeout: 15_000,
-  });
-
-  await page.getByRole("searchbox", { name: "Search local replay" }).focus();
+  await expect(page.locator('[data-replay-ready="true"]')).toBeVisible();
+  const nav = page.getByRole("navigation", { name: "Engagement workspace" });
+  for (const name of [
+    "Engagement brief",
+    "Evidence",
+    "Business case",
+    "Solution & evaluation",
+    "Delivery plan",
+    "Outcomes & decision",
+  ]) {
+    await nav.getByRole("button", { name, exact: true }).click();
+    const results = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+      .analyze();
+    expect(results.violations, name).toEqual([]);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+      name,
+    ).toBe(true);
+  }
+  await page.getByRole("button", { name: "Reset demo", exact: true }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await page.keyboard.press("Escape");
   await expect(
-    page.getByRole("searchbox", { name: "Search local replay" }),
+    page.getByRole("button", { name: "Reset demo", exact: true }),
   ).toBeFocused();
-  const results = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
-    .analyze();
-  expect(
-    results.violations.filter((violation) =>
-      ["serious", "critical"].includes(violation.impact ?? ""),
-    ),
-  ).toEqual([]);
 });

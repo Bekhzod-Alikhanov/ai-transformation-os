@@ -1,4 +1,8 @@
 node_modules/
+.gstack/
+.pnpm-store/
+.agents/
+.codex/
 .next/
 coverage/
 playwright-report/

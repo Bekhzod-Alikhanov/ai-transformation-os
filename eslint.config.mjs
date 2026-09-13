@@ -8,6 +8,12 @@ export default defineConfig([
   globalIgnores([
     ".next/**",
     ".gstack/",
+    ".pnpm-store/",
+    ".superpowers/",
+    ".agents/",
+    ".codex/",
+    ".vercel/",
+    ".inngest/",
     "coverage/**",
     "playwright-report/**",
     "test-results/**",

@@ -1,5 +1,11 @@
 .next
 .gstack
+.pnpm-store
+.superpowers
+.agents
+.codex
+.vercel
+.inngest
 node_modules
 coverage
 playwright-report

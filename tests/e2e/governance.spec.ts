@@ -1,98 +1,56 @@
 import { expect, test } from "@playwright/test";
-
-test("public entry opens the replay without requiring email", async ({
+test("public entry and legacy routes open the demo without email", async ({
   page,
 }) => {
-  await page.goto("/");
-
-  await expect(page).toHaveURL(/\/demo$/);
-  await expect(
-    page.getByRole("heading", { name: "Evidence to governed decision" }),
-  ).toBeVisible();
-  await expect(page.getByLabel("Work email")).toHaveCount(0);
-
-  await page.goto("/auth/sign-in");
-  await expect(page).toHaveURL(/\/demo$/);
-  await expect(page.getByLabel("Work email")).toHaveCount(0);
-});
-
-test("demo sessions cannot open legacy workspace surfaces", async ({
-  page,
-}) => {
-  const session = await page.request.post("/api/auth/demo");
-  expect(session.ok()).toBeTruthy();
-
-  for (const path of ["/", "/opportunities", "/portfolio", "/integrations"]) {
+  for (const path of [
+    "/",
+    "/auth/sign-in",
+    "/opportunities",
+    "/portfolio",
+    "/integrations",
+  ]) {
     await page.goto(path);
     await expect(page).toHaveURL(/\/demo$/);
     await expect(
-      page.getByRole("heading", { name: "Evidence to governed decision" }),
+      page.getByRole("heading", { name: "Support Operations Copilot" }),
     ).toBeVisible();
+    await expect(page.getByLabel("Work email")).toHaveCount(0);
   }
 });
-
-test("local replay search distinguishes case and use-case records with real category content", async ({
+test("both project records, reset cancellation and backup recovery work", async ({
   page,
 }) => {
-  const session = await page.request.post("/api/auth/demo");
-  expect(session.ok()).toBeTruthy();
   await page.goto("/demo");
-  await expect(page.locator('[data-replay-ready="true"]')).toBeVisible({
-    timeout: 15_000,
-  });
-
-  await page
-    .getByRole("searchbox", { name: "Search local replay" })
-    .fill("support");
-
+  await expect(page.locator('[data-replay-ready="true"]')).toBeVisible();
+  const projects = page.getByRole("navigation", { name: "Client engagements" });
+  await expect(projects.getByRole("button")).toHaveCount(2);
+  await projects.getByRole("button", { name: /Executive reporting/ }).click();
   await expect(
-    page.getByRole("button", { name: "Support Triage · Case" }),
+    page.getByRole("heading", { name: "Executive Reporting Automation" }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "Sponsor view", exact: true }).click();
   await expect(
-    page
-      .getByRole("button", { name: "Support Triage · Case" })
-      .getByText(
-        "Route and prepare support work with evidence-linked human review.",
-      ),
+    page.getByRole("heading", {
+      name: "Is this ready for the next commitment?",
+    }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "Reset demo", exact: true }).click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(
-    page.getByRole("button", { name: "Support Queue Copilot · Use Case" }),
+    page.getByRole("heading", { name: "Executive Reporting Automation" }),
   ).toBeVisible();
+  const backup = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Back up workspace" }).click();
+  expect((await backup).suggestedFilename()).toBe("beck-workspace-backup.json");
+  await page.getByRole("button", { name: "Reset demo", exact: true }).click();
+  await page.getByRole("button", { name: "Confirm reset" }).click();
   await expect(
-    page
-      .getByRole("button", { name: "Support Queue Copilot · Use Case" })
-      .getByText(
-        "Local use case for queue preparation with analyst-controlled escalation.",
-      ),
+    page.getByRole("heading", { name: "Support Operations Copilot" }),
   ).toBeVisible();
-});
-
-test("responsive inspector keeps the primary workbench visible across breakpoints", async ({
-  page,
-}) => {
-  const session = await page.request.post("/api/auth/demo");
-  expect(session.ok()).toBeTruthy();
-  await page.goto("/demo");
-  await expect(page.locator('[data-replay-ready="true"]')).toBeVisible({
-    timeout: 15_000,
-  });
-
-  const viewportWidth = page.viewportSize()?.width ?? 0;
-  if (viewportWidth >= 1280) {
-    await expect(
-      page.getByRole("button", { name: "Open evidence inspector" }),
-    ).toHaveCount(0);
-  } else {
-    await page.getByRole("button", { name: "Open evidence inspector" }).click();
-    await expect(
-      page.getByRole("button", { name: "Close evidence inspector" }),
-    ).toBeVisible();
-  }
-  await expect(page.getByText("No providers. No database.")).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "Evidence to governed decision" }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "Support Triage" }),
-  ).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
 });

@@ -48,6 +48,8 @@ describe("DemoPage", () => {
 
     render(await DemoPage());
 
-    expect(screen.getByText("Synthetic Replay")).toBeVisible();
+    expect(
+      screen.getByText("Synthetic client engagement", { exact: false }),
+    ).toBeVisible();
   });
 });
