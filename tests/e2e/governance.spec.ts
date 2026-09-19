@@ -15,6 +15,12 @@ test("public entry and legacy routes open the demo without email", async ({
       page.getByRole("heading", { name: "Support Operations Copilot" }),
     ).toBeVisible();
     await expect(page.getByLabel("Work email")).toHaveCount(0);
+    await expect(
+      page.getByRole("button", { name: /guided tour|Начать тур/i }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole("region", { name: /Platform tour|Тур по платформе/i }),
+    ).toHaveCount(0);
   }
 });
 test("both project records, reset cancellation and backup recovery work", async ({
