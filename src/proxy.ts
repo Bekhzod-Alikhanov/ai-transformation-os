@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = new Set(["/", "/demo"]);
+const PUBLIC_PATHS = new Set(["/", "/demo", "/workbench"]);
 
 function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.has(pathname) || pathname.startsWith("/auth/");
@@ -33,7 +33,14 @@ export function proxy(request: NextRequest) {
     );
     return NextResponse.redirect(signInUrl);
   }
-  return NextResponse.next();
+  // Always overwrite untrusted incoming values; this is a rendering boundary,
+  // never an authorization signal. Authorization above remains path-based.
+  const headers = new Headers(request.headers);
+  headers.set(
+    "x-assessment-surface",
+    request.nextUrl.pathname === "/workbench" ? "workbench" : "legacy",
+  );
+  return NextResponse.next({ request: { headers } });
 }
 
 export const config = {

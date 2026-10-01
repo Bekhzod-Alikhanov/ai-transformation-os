@@ -7,6 +7,19 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: process.cwd(),
   },
+  webpack(config, { isServer, webpack }) {
+    if (!isServer) {
+      // Honor PptxGenJS's browser exclusions before webpack handles node: URLs.
+      // Server builds and every other package retain their normal resolution.
+      config.plugins.push(
+        new webpack.IgnorePlugin({
+          resourceRegExp: /^node:(fs|https)$/,
+          contextRegExp: /[\\/]node_modules[\\/]pptxgenjs[\\/]/,
+        }),
+      );
+    }
+    return config;
+  },
 };
 
 export default nextConfig;

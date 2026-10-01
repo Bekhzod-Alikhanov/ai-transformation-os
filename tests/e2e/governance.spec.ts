@@ -15,6 +15,9 @@ test("public entry and legacy routes open the demo without email", async ({
       page.getByRole("heading", { name: "Support Operations Copilot" }),
     ).toBeVisible();
     await expect(page.getByLabel("Work email")).toHaveCount(0);
+    await page
+      .getByRole("link", { name: "Open consulting assessment workbench" })
+      .click({ trial: true });
     await expect(
       page.getByRole("button", { name: /guided tour|Начать тур/i }),
     ).toHaveCount(0);

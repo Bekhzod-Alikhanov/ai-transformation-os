@@ -1,0 +1,711 @@
+.aw-shell {
+  --aw-accent: #3157d5;
+  min-height: 100vh;
+  background: #f3f2ec;
+  color: #20221e;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.aw-shell *,
+.aw-drawer * {
+  box-sizing: border-box;
+}
+.aw-shell h1 {
+  font-size: clamp(25px, 3vw, 34px);
+  line-height: 1.2;
+  letter-spacing: -0.04em;
+  font-weight: 650;
+  margin: 0 0 12px;
+}
+.aw-shell h2,
+.aw-shell h1.aw-surface-title,
+.aw-drawer h2 {
+  font-size: 20px;
+  line-height: 1.3;
+  font-weight: 620;
+  letter-spacing: -0.025em;
+  margin: 0 0 12px;
+}
+.aw-shell h3,
+.aw-drawer h3 {
+  font-size: 15px;
+  font-weight: 650;
+  margin: 0 0 8px;
+}
+.aw-shell p,
+.aw-drawer p {
+  margin: 0 0 12px;
+}
+.aw-shell button,
+.aw-shell input,
+.aw-shell select,
+.aw-shell textarea,
+.aw-drawer button {
+  font: inherit;
+}
+.aw-shell button,
+.aw-drawer button {
+  border: 1px solid #cccec5;
+  border-radius: 5px;
+  background: white;
+  color: #20221e;
+  min-height: 38px;
+  padding: 7px 12px;
+  text-align: left;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.aw-shell button:hover,
+.aw-drawer button:hover {
+  background: #f1f2ee;
+  border-color: #9b9f91;
+}
+.aw-shell button.aw-primary {
+  background: var(--aw-accent);
+  border-color: var(--aw-accent);
+  color: white;
+  font-weight: 600;
+}
+.aw-shell button:disabled,
+.aw-shell fieldset:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+.aw-shell :focus-visible,
+.aw-drawer :focus-visible {
+  outline: 3px solid #3157d5;
+  outline-offset: 3px;
+}
+.aw-shell a {
+  color: #2849bb;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.aw-shell fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.aw-shell legend {
+  font-weight: 650;
+  padding: 0 0 8px;
+}
+.aw-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 24px;
+  padding: 18px 28px;
+  border-bottom: 1px solid #d9dbd2;
+  background: #fafaf6;
+}
+.aw-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: auto;
+}
+.aw-brand strong {
+  font-size: 18px;
+  display: block;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+}
+.aw-brand small {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  margin-top: 5px;
+}
+.aw-monogram {
+  display: grid;
+  place-items: center;
+  width: 37px;
+  height: 37px;
+  background: #20221e;
+  color: white;
+  font-size: 23px;
+  font-weight: 550;
+  border-radius: 5px;
+}
+.aw-header p {
+  margin: 0;
+}
+.aw-local {
+  color: #176b58;
+  font-size: 12px;
+  font-weight: 600;
+}
+.aw-warning {
+  font-size: 11px;
+  padding: 7px 28px;
+  color: #6d4b10;
+  background: #f7eed8;
+  border-bottom: 1px solid #e2d5b7;
+}
+.aw-toolbar {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 16px 28px;
+  border-bottom: 1px solid #d9dbd2;
+}
+.aw-toolbar .aw-field {
+  max-width: 300px;
+  min-width: 180px;
+  flex: 1;
+}
+.aw-toolbar p {
+  margin: 0 0 9px auto;
+  color: #4d584a;
+  font-size: 12px;
+}
+.aw-layout {
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1fr) 290px;
+  gap: 22px;
+  max-width: 1800px;
+  margin: auto;
+  padding: 24px;
+  align-items: start;
+}
+.aw-nav {
+  padding-top: 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.aw-nav button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  font-size: 13px;
+  white-space: nowrap;
+  background: transparent;
+  border-color: transparent;
+}
+.aw-nav button span {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: #60675b;
+}
+.aw-nav button[aria-current="page"] {
+  border-color: #d4dbf6;
+  background: #e9edfb;
+  color: #2849bb;
+  font-weight: 600;
+}
+.aw-nav .aw-muted {
+  font-size: 11px;
+  padding-top: 30px;
+}
+.aw-main {
+  min-width: 0;
+}
+.aw-shell > .aw-main {
+  max-width: 800px;
+  margin: 48px auto;
+  padding: 24px;
+}
+.aw-panel {
+  background: white;
+  border: 1px solid #d8dbd2;
+  border-radius: 7px;
+  padding: 24px;
+  box-shadow: 0 2px 3px #20221e03;
+  min-width: 0;
+}
+.aw-section-heading {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  align-items: start;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.aw-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #62685b;
+  font-weight: 650;
+  margin-bottom: 8px !important;
+}
+.aw-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+.aw-financial-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 24px;
+}
+.aw-financial-metrics > div {
+  border-top: 1px solid #dee1d7;
+  padding: 12px 0;
+  min-width: 0;
+}
+.aw-financial-metrics dt {
+  color: #59614f;
+  font-size: 12px;
+}
+.aw-financial-metrics dd {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+}
+.aw-chart {
+  width: 100%;
+  min-width: 0;
+  height: 260px;
+}
+.aw-actions button[aria-pressed="true"] {
+  background: #e9edfb;
+  border-color: #849be8;
+  color: #2849bb;
+}
+.aw-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.aw-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.aw-field > span {
+  color: #52594d;
+  font-size: 12px;
+  font-weight: 600;
+}
+.aw-field input,
+.aw-field textarea,
+.aw-field select {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 9px 10px;
+  color: #20221e;
+  background: #fdfefb;
+  border: 1px solid #bdc3b6;
+  border-radius: 4px;
+  min-height: 40px;
+}
+.aw-field textarea {
+  resize: vertical;
+}
+.aw-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.aw-check {
+  display: flex;
+  align-items: start;
+  gap: 8px;
+}
+.aw-check input {
+  margin-top: 5px;
+}
+.aw-muted {
+  color: #61675b;
+  font-size: 12px;
+}
+.aw-tag {
+  border: 1px solid #d2d7c9;
+  border-radius: 4px;
+  padding: 4px 7px;
+  font-size: 11px;
+  white-space: normal;
+  color: #59614f;
+}
+.aw-inline-form {
+  display: flex;
+  gap: 12px;
+  align-items: end;
+  margin: 20px 0;
+}
+.aw-inline-form .aw-field {
+  flex: 1;
+}
+.aw-template-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  border-top: 1px solid #e2e4dc;
+  padding-top: 24px;
+  margin-top: 24px;
+}
+.aw-template-grid p {
+  font-size: 13px;
+  color: #61675b;
+}
+.aw-readiness {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.aw-readiness > div {
+  padding: 10px;
+  background: #f4f5ef;
+  border-radius: 4px;
+}
+.aw-readiness span {
+  display: block;
+  text-transform: capitalize;
+  font-size: 11px;
+  color: #59614f;
+}
+.aw-readiness strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+}
+.aw-state-unknown {
+  color: #606557;
+}
+.aw-state-ready {
+  color: #176b58;
+}
+.aw-state-concern {
+  color: #9f2942;
+}
+.aw-callout {
+  padding: 16px;
+  background: #f5f6ee;
+  border-left: 3px solid #818e67;
+  overflow-wrap: anywhere;
+}
+.aw-callout button {
+  margin: 8px 8px 0 0;
+}
+.aw-shell > .aw-callout {
+  margin: 12px 28px;
+}
+.aw-error {
+  padding: 13px 16px;
+  background: #fff0f1;
+  color: #932639;
+  border: 1px solid #e7bfc5;
+  border-radius: 4px;
+  overflow-wrap: anywhere;
+}
+.aw-shell > .aw-error {
+  margin: 12px 28px;
+}
+.aw-shell ul,
+.aw-shell ol,
+.aw-drawer ul,
+.aw-drawer ol {
+  padding-left: 20px;
+  list-style: revert;
+}
+.aw-shell li,
+.aw-drawer li {
+  margin-bottom: 8px;
+}
+.aw-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid #d8dbd2;
+  border-radius: 4px;
+}
+.aw-shell table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.aw-shell caption {
+  text-align: left;
+  padding: 10px;
+  color: #59614f;
+}
+.aw-shell .aw-comparison-table {
+  min-width: 620px;
+}
+.aw-shell th {
+  text-align: left;
+  font-weight: 600;
+  background: #f3f4ed;
+}
+.aw-shell td,
+.aw-shell th {
+  border-bottom: 1px solid #e1e4da;
+  padding: 9px;
+  vertical-align: top;
+}
+.aw-shell td .aw-field {
+  min-width: 120px;
+}
+.aw-shell td .aw-field span {
+  font-size: 10px;
+}
+.aw-shell td.aw-process-action {
+  min-width: 135px;
+  white-space: nowrap;
+}
+.aw-shell td {
+  max-width: 300px;
+  overflow-wrap: anywhere;
+}
+.aw-evidence-grid {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 24px;
+  margin-top: 24px;
+}
+.aw-source-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.aw-source-list button {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.aw-source-list button[aria-pressed="true"] {
+  border-color: #849be8;
+  background: #edf1ff;
+}
+.aw-source-list small {
+  font-size: 11px;
+  color: #606859;
+}
+.aw-request {
+  padding: 16px;
+  border: 1px solid #dee1d7;
+  border-radius: 4px;
+}
+.aw-drop {
+  padding: 16px;
+  background: #f7f8f2;
+  border: 1px dashed #aab29d;
+  border-radius: 5px;
+}
+.aw-drop p {
+  margin-top: 9px;
+}
+.aw-queue-record {
+  padding: 18px 0;
+  border-top: 1px solid #e0e3d8;
+}
+.aw-queue-record h3 button {
+  padding: 0;
+  border: 0;
+  color: #2849bb;
+  font-size: 17px;
+}
+.aw-queue-record p {
+  font-size: 12px;
+  color: #59614f;
+}
+.aw-queue-issues {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+  font-size: 12px;
+}
+.aw-queue-issues strong {
+  flex-basis: 100%;
+}
+.aw-backup {
+  max-width: 620px;
+  font-size: 12px;
+}
+.aw-backup[open] {
+  flex-basis: 100%;
+  max-width: none;
+  padding-top: 12px;
+}
+.aw-shell summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.aw-shell pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 250px;
+  overflow: auto;
+  font-size: 11px;
+}
+.aw-inspector {
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.aw-inspector h2 {
+  font-size: 17px;
+}
+.aw-inspector blockquote,
+.aw-drawer blockquote {
+  border-left: 2px solid #b4bca6;
+  padding-left: 12px;
+  white-space: pre-wrap;
+}
+.aw-overlay {
+  position: fixed;
+  inset: 0;
+  background: #20221e66;
+  z-index: 80;
+}
+.aw-drawer {
+  position: fixed;
+  right: 0;
+  top: 0;
+  height: 100dvh;
+  width: min(460px, 100%);
+  z-index: 81;
+  background: #fff;
+  padding: 26px;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  color: #20221e;
+  font-size: 14px;
+}
+.aw-drawer .aw-close {
+  margin: 12px 0 24px;
+}
+.aw-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.aw-skip {
+  position: fixed;
+  left: 12px;
+  top: -100px;
+  background: white;
+  padding: 12px;
+  z-index: 100;
+}
+.aw-skip:focus {
+  top: 10px;
+}
+.aw-export-controls {
+  display: grid;
+  gap: 18px;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.aw-export-outline {
+  columns: 2 240px;
+  padding-left: 24px;
+  line-height: 2;
+}
+.aw-export-outline li {
+  break-inside: avoid;
+}
+.aw-brief-preview {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.7;
+  background: #f7f4ed;
+  border-left: 3px solid #414c3c;
+  padding: 22px;
+  margin: 0;
+}
+@media (max-width: 1279px) {
+  .aw-layout {
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: 18px;
+    padding: 20px;
+  }
+}
+@media (max-width: 760px) {
+  .aw-header {
+    padding: 16px;
+    gap: 12px;
+  }
+  .aw-warning {
+    padding: 8px 16px;
+  }
+  .aw-toolbar {
+    padding: 14px 16px;
+    gap: 12px;
+  }
+  .aw-toolbar .aw-field {
+    max-width: none;
+    min-width: 100%;
+  }
+  .aw-toolbar p {
+    margin: 0;
+    flex-basis: 100%;
+  }
+  .aw-layout {
+    display: block;
+    padding: 16px;
+  }
+  .aw-nav {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 0 0 16px;
+  }
+  .aw-nav .aw-eyebrow,
+  .aw-nav .aw-muted {
+    display: none;
+  }
+  .aw-panel {
+    padding: 18px;
+  }
+  .aw-grid,
+  .aw-financial-metrics,
+  .aw-template-grid,
+  .aw-evidence-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .aw-inline-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .aw-readiness {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .aw-stack {
+    gap: 18px;
+  }
+  .aw-section-heading {
+    gap: 8px;
+  }
+  .aw-header > a {
+    font-size: 12px;
+  }
+  .aw-shell > .aw-error,
+  .aw-shell > .aw-callout {
+    margin: 12px 16px;
+  }
+  .aw-source-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .aw-header .aw-local {
+    flex-basis: 100%;
+  }
+}

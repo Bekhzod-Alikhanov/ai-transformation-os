@@ -13,6 +13,18 @@ Editable evidence reviews and workshop notes; weighted annual CSV baseline impor
 
 The default public entry opens `/demo` **without email, API keys, paid services or a hosted database**. Changes persist in this browser. Back up before switching devices or clearing site data.
 
+## Consulting assessment workbench
+
+`/workbench` is a separate, synthetic-only assessment workspace. The public two-engagement `/demo` and its exports remain independent. The workbench supports blank engagements and Support/Reporting templates, USD/GBP/EUR (without FX conversion), Brief, Evidence, Options & Value, Recommendation and Deliverables.
+
+Save discovery, process steps, evidence requests and reviewed source excerpts; compare business as usual, process/rules, assistance and automation using the shared 36-month financial engine. Owned assumption revisions, saved what-if scenarios, local seeded simulations, readiness gates and immutable recommendation snapshots retain the evidence behind a decision. Editing a source does not silently update numerical assumptions. Unsaved editor values never enter a recommendation export.
+
+Deliverables prepares one explicit payload for the on-screen Markdown preview, Markdown investment brief, eight-slide editable PowerPoint and nine-sheet Excel review workbook. Choose the current saved draft or a reviewed historical snapshot. Historical facts, currency, evidence and validation stay together, with a separate current-revision/staleness marker. Incomplete economics remain labelled draft/Not assessed even in a reviewed recommendation. Internal notes are excluded by default; opting in includes them in the selected deliverables. Long slide text points to full workbook records. Workbook numbers are computed values, with formula definitions in Methods; it is not another financial engine.
+
+Everything entered stays in this browser: no uploads, live AI, provider calls or hosted assessment database. Application assets still load from the site. The version 2 workspace uses transactional IndexedDB and rejects stale writes. Full JSON backup/restore includes internal notes and historical records, so it is a recovery file rather than a sanitized client deliverable. Restore validates the version and data before an explicit replacement confirmation. Optional legacy migration preserves the original demo record; unknown alternatives stay unknown. Corrupt records remain downloadable without being overwritten; restore a validated backup in a clean browser profile for recovery. Browser storage is neither encrypted nor a multi-user audit system—use synthetic data only.
+
+Remaining limits: projections depend on entered assumptions and evidence reviews, simulations omit correlations, and there is no tax/FX model, live model evaluation or certified control assessment. Automated checks do not establish practitioner usefulness or native PowerPoint visual compatibility. Human validation is **not conducted**; see the [three-to-five-practitioner validation protocol](docs/assessment-practitioner-validation.md). Deployment/release acceptance remains a separate final verification step.
+
 ## Run locally
 
 Node.js 22+ and pnpm 10.33.2. Existing dependencies are locked in `pnpm-lock.yaml`.

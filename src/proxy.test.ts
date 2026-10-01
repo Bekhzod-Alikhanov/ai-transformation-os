@@ -10,6 +10,36 @@ function request(path: string, cookie?: string) {
 }
 
 describe("workspace route boundary", () => {
+  it("overwrites the surface header and cannot bypass protected routes", () => {
+    const publicResponse = proxy(
+      new NextRequest("https://example.test/workbench", {
+        headers: {
+          cookie: "sb-project-auth-token=old",
+          "x-assessment-surface": "spoof",
+        },
+      }),
+    );
+    expect(
+      publicResponse.headers.get("x-middleware-request-x-assessment-surface"),
+    ).toBe("workbench");
+    const privateResponse = proxy(
+      new NextRequest("https://example.test/opportunities", {
+        headers: { "x-assessment-surface": "workbench" },
+      }),
+    );
+    expect(privateResponse.status).toBe(307);
+    const authenticated = proxy(
+      new NextRequest("https://example.test/opportunities", {
+        headers: {
+          cookie: "sb-project-auth-token=old",
+          "x-assessment-surface": "workbench",
+        },
+      }),
+    );
+    expect(
+      authenticated.headers.get("x-middleware-request-x-assessment-surface"),
+    ).toBe("legacy");
+  });
   it("redirects a signed-out direct workspace route to sign in", () => {
     const response = proxy(request("/opportunities?view=mine"));
 
@@ -19,7 +49,7 @@ describe("workspace route boundary", () => {
     );
   });
 
-  it.each(["/", "/auth/sign-in", "/demo"])(
+  it.each(["/", "/auth/sign-in", "/demo", "/workbench"])(
     "keeps the public route %s reachable while signed out",
     (path) => {
       const response = proxy(request(path));

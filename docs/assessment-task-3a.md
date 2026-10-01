@@ -1,0 +1,25 @@
+# Task 3A — persistent engagement and evidence journey
+
+Read `assessment-task-3.md` as the shared UI specification. Implement ONLY Route boundaries, Overall layout, Persistence/controller, Brief and Evidence in this slice, with their corresponding acceptance tests. Do not implement Options & Value, Recommendation or export internals yet: those are the next reviewed slices, not dropped scope. No inert placeholder actions; navigation can expose only the implemented sections until 3B/4 add theirs. No subagents.
+
+Consume reviewed domain and repository/import interfaces. Do not change their contracts without coordinating with the controller. The UI must call those services; no parallel calculation or persistence implementations.
+
+Task2 handoff: read `assessment-task-2-report.md`. `CorruptWorkspaceError.rawBackup` exposes recoverable raw data, while `StaleWorkspaceError` carries revision details. `ImportTable.rowNumbers` preserves source positions after blank-row filtering; don't regenerate row numbers in previews. Migrated non-selected alternatives are deliberately unknown because v1 did not save separate alternatives; do not silently fill them from templates. Keep the native IndexedDB commit, two-tab, stale-restore, abort and version-change coverage from that report in this slice's browser checks.
+
+Deferred Task2 review minor: synchronous `indexedDB.open()` errors currently lack the recovery guidance of async errors. During storage-denial integration, ensure both synchronous security failures and async failures give the same clear browser-permissions/reopen guidance without resetting records. A small repository error-boundary correction and covering regression are permitted in this task; record them in its report.
+
+Deliver the reusable workbench shell, opening/recovery state, local browser store controller, engagement lifecycle, opportunity selection, synthetic template creation, brand settings, migration/recovery/backup/restore, brief/discovery/process editing and reviewed evidence/baseline import. Preserve draft form edits or ask before discarding. Save success must follow storage commit. Keep local entered data out of requests.
+
+Render brand colours only through the approved contrast-safe palette, including after backup restore; never inject an arbitrary imported string into CSS that could load a URL. Show unknown evidence confidence/provenance honestly. Keep source snippets and internal notes as escaped text, not HTML.
+
+Distinguish the full JSON recovery backup from client deliverables: it deliberately includes internal notes and legacy records, so label it as a workspace backup, not a sanitised client export. Client export note exclusion is handled by Task4.
+
+The next implementer will add financial modelling and recommendation surfaces. Expose a small typed surface interface with selected Engagement/Opportunity, an awaited save operation based on the current workspace revision, navigation to a section/record, and inspector opening. Report its exact types and locations. Keep UI files focused rather than putting controller/forms/tables in one large component.
+
+Test the blank engagement → opportunity → CSV import preview/apply → evidence review → reload journey, malformed backups, stale two-tab writes, archive/restore, both template creation and native IndexedDB persistence. Use real production browser storage in E2E; no mock storage success claims. Cover responsive keyboard/drawer behaviour for implemented sections at the configured desktop/tablet/mobile sizes. Broad finance and export journeys belong to subsequent slices.
+
+Read installed Next route/header/proxy documentation before modifying route integration. Apply provider-free server boundary in the shared specification. Use test-driven development and the existing warm Inter design language. Scope source changes to assessment UI, necessary shell/proxy/route entry and their tests; preserve legacy demo features and data.
+
+Build integration amendment: the isolated checkout uses a dependency junction that default Turbopack cannot resolve within its root. Expanding that root to the user home was explicitly rejected; do not repeat it. A minimal client-only webpack IgnorePlugin may honor the installed pptxgenjs package's existing browser exclusions for exactly node:fs and node:https, scoped to that package's directory only. Test positive/negative package matches and unchanged server behavior, then verify real legacy PPTX download and a production webpack build. Do not upgrade dependencies, disable unrelated checks or globally exclude Node modules. If generated production types confirm the legacy process route's unsupported named ProcessPageContent export, extract that component into a sibling module and update its test import without changing behavior. Report both corrections separately from new workbench features. Default Turbopack release verification remains required in a checkout with in-root dependencies.
+
+Write `docs/assessment-task-3a-report.md` with interfaces, exact test evidence and remaining cross-slice work. Commit only this task's changes. Do not push, deploy or dispatch subagents.

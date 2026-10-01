@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { vi } from "vitest";
+import { headers } from "next/headers";
 
 import { getWorkspaceContext } from "@/modules/auth/workspace-context.server";
 
@@ -10,8 +11,21 @@ vi.mock("@/modules/auth/workspace-context.server", () => ({
 }));
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
+vi.mock("next/headers", () => ({ headers: vi.fn(async () => new Headers()) }));
 
 describe("WorkspaceShell", () => {
+  it("never looks up a provider context for the isolated assessment surface", async () => {
+    vi.mocked(headers).mockResolvedValueOnce(
+      new Headers({ "x-assessment-surface": "workbench" }) as never,
+    );
+    vi.mocked(getWorkspaceContext).mockImplementationOnce(async () => {
+      throw new Error("Provider lookup must not run");
+    });
+    render(await WorkspaceShell({ children: <div>Local assessment</div> }));
+    expect(screen.getByText("Local assessment")).toBeVisible();
+    expect(getWorkspaceContext).not.toHaveBeenCalled();
+    vi.mocked(getWorkspaceContext).mockReset();
+  });
   it("does not render authenticated navigation for signed-out content", async () => {
     vi.mocked(getWorkspaceContext).mockResolvedValue(null);
 

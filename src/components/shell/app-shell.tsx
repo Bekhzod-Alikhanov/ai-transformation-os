@@ -192,6 +192,8 @@ export function AppShell(props: {
   children: ReactNode;
   workspace: WorkspaceContext;
 }) {
+  const pathname = usePathname();
+  if (pathname === "/workbench") return <>{props.children}</>;
   if (props.workspace.mode === "synthetic_replay") return <>{props.children}</>;
   return <AuthenticatedAppShell {...props} />;
 }

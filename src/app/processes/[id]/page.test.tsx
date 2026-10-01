@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 
 import type { WorkspaceContext } from "@/modules/auth/workspace-context";
 
-import { ProcessPageContent } from "./page";
+import { ProcessPageContent } from "./process-page-content";
 
 const liveWorkspace: WorkspaceContext = {
   organisationId: "live-organisation",
