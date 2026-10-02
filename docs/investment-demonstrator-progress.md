@@ -27,7 +27,7 @@ Baseline: `ffbc3f9`; clean checkout; 342 unit tests / 92 files pass.
 ## Verification record
 
 - Baseline unit suite: 342/342, 92/92 files, 19.73 seconds.
-- Implementation and deployment remain in progress; this is not a completion claim.
+- Initial checkpoint: implementation and deployment were in progress; subsequent gates are recorded below.
 
 ## Connected release scope
 
@@ -68,3 +68,13 @@ Ruling: practitioner usefulness and live AI performance are not established — 
 Ruling: integration and production publication follow Beck's explicit Day 7 deployment request and AGENTS.md's squash-to-main workflow. No dependency/Node upgrades or new paid/provider integrations are introduced. Existing unrelated worktrees remain untouched.
 
 Integrated-tree verification initially failed formatting because Git's Windows autocrlf checkout rewrote all changed text to CRLF. Added `.gitattributes` to make text checkouts LF on every host, keeping binary files automatic. Formatting is rerun before the integrated release gate; no application logic changed in this correction.
+
+## Integrated and production acceptance
+
+- Integrated main `fa8d0e8`: fresh `corepack pnpm verify` exit 0; 365 unit tests / 99 files and 87 browser tests pass, including formatting, lint, types, secret scan and production build. Checkout clean.
+- GitHub main pushed; repository verified public. Vercel's exact-commit status reported **Deployment has completed** for deployment `G1HNWHqf2NFQTsdEzHSiQYUnvVfH`.
+- Production `GET /`: HTTP 200. Twenty-one production browser journeys pass across desktop, tablet and mobile: both examples, responsive/accessibility surfaces, no-email public entry, scoped/cancellable reset, native v2 retention and matching MD/PPTX/XLSX downloads.
+- Published README verified connected sections/two examples, with neither the obsolete separate-product description nor a guided-tour paragraph.
+- Both example journeys are implemented, automatically demonstrated and tested. Beck's own rehearsal, external practitioners, native Office rendering and full manual screen-reader acceptance remain **not conducted**. No live AI or production confidential-data suitability is claimed.
+
+This final evidence update is documentation-only; it does not change the verified application source.
