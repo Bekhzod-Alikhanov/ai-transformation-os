@@ -146,6 +146,8 @@ export function duplicateEngagement(engagement: Engagement): Engagement {
       o.assumptions,
       o.questions ?? [],
       o.evaluations ?? [],
+      o.pilots ?? [],
+      o.pilotApplications ?? [],
     ].forEach((list) => list.forEach(reidentify));
     for (const option of o.options)
       [
@@ -161,6 +163,28 @@ export function duplicateEngagement(engagement: Engagement): Engagement {
       question.evidenceIds = question.evidenceIds.map((eid) => ids.get(eid)!);
     for (const run of o.evaluations ?? [])
       run.optionId = ids.get(run.optionId)!;
+    // Pilot forecasts are historical copies, not extra live entities. Remap
+    // references and captured basis strings together when duplicating a case.
+    const remap = (value: unknown): unknown => {
+      if (typeof value === "string") {
+        let text = value;
+        for (const [oldId, newId] of ids) text = text.split(oldId).join(newId);
+        return text;
+      }
+      if (Array.isArray(value)) return value.map(remap);
+      if (value && typeof value === "object")
+        return Object.fromEntries(
+          Object.entries(value).map(([key, item]) => [key, remap(item)]),
+        );
+      return value;
+    };
+    // IDs in these lists have already been changed; remap their nested references only.
+    o.pilots = o.pilots?.map(
+      (p) => remap(p) as NonNullable<Opportunity["pilots"]>[number],
+    );
+    o.pilotApplications = o.pilotApplications?.map(
+      (p) => remap(p) as NonNullable<Opportunity["pilotApplications"]>[number],
+    );
     o.selectedOptionId = ids.get(o.selectedOptionId)!;
     for (const a of o.assumptions) {
       a.optionId = ids.get(a.optionId)!;

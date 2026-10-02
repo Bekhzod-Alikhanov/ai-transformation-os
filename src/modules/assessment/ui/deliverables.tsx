@@ -8,7 +8,7 @@ import {
   downloadArtifact,
 } from "../exports";
 import { STEERING_OUTLINE } from "../exports/slides";
-import { provenance } from "../exports/brief";
+import { provenance, amount } from "../exports/brief";
 import { ErrorMessage, errorText, Select } from "./fields";
 
 export function Deliverables({
@@ -175,6 +175,74 @@ export function Deliverables({
                 : completed}
             </p>
           </section>
+          {payload && (
+            <section
+              className="aw-panel aw-stack aw-partner-summary"
+              aria-label="Partner brief"
+            >
+              <p className="aw-eyebrow">Client decision / one reviewed basis</p>
+              <h2>Partner brief</h2>
+              <p>
+                <strong>{payload.partner.decision}</strong> ·{" "}
+                {payload.partner.selected}
+              </p>
+              <p>{payload.problem}</p>
+              <p>
+                Calculated preferred intervention:{" "}
+                <strong>{payload.partner.preferred}</strong>
+              </p>
+              <p>{payload.partner.why}</p>
+              <p>Alternatives: {payload.partner.alternatives}</p>
+              <p>
+                Accountable owner: {payload.partner.owner} · Next decision:{" "}
+                {payload.partner.nextDecisionDate}
+              </p>
+              {payload.partner.conditions.length > 0 && (
+                <ul>
+                  {payload.partner.conditions.map((c) => (
+                    <li key={c}>{c}</li>
+                  ))}
+                </ul>
+              )}
+              {payload.pilots
+                .filter((p) => p.id === payload.partner.latestPilotId)
+                .map((p) => (
+                  <div className="aw-callout" key={p.id}>
+                    <strong>
+                      {p.name} · {p.disposition}
+                    </strong>
+                    <p>
+                      Forecast / pilot-informed economic NPV:{" "}
+                      {amount(p.forecast.npv, p)} / {amount(p.projected.npv, p)}
+                      .
+                    </p>
+                    <p>
+                      Cash-only NPV: {amount(p.forecast.cashNpv, p)} /{" "}
+                      {amount(p.projected.cashNpv, p)}. Annual hours:{" "}
+                      {p.forecast.annualHoursSaved ?? "unknown"} /{" "}
+                      {p.projected.annualHoursSaved ?? "unknown"}.
+                    </p>
+                    <p>
+                      Annualised projections, not realised savings.{" "}
+                      {p.limitations}
+                    </p>
+                    {p.stale && (
+                      <p>
+                        Historical pilot basis is stale. Review before
+                        presenting a current recommendation.
+                      </p>
+                    )}
+                  </div>
+                ))}
+              <p>
+                <strong>Next step:</strong> {payload.partner.nextStep}
+              </p>
+              <p className="aw-muted">
+                {payload.notice} Local prototype, not production approval or
+                proof of live AI performance.
+              </p>
+            </section>
+          )}
           <section className="aw-panel aw-stack">
             <h2>Steering pack outline</h2>
             <p>

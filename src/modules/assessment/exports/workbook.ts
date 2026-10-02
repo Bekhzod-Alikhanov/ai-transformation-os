@@ -509,6 +509,152 @@ export async function createAssessmentWorkbook(
         ]),
       ),
     );
+  if (p.pilots.length) {
+    table(
+      "Pilot observations",
+      [
+        "Pilot",
+        "Pilot revision ID",
+        "Saved at",
+        "Owner",
+        "Source",
+        "Task",
+        "Timed count",
+        "Manual total min",
+        "Handling total min",
+        "Review total min",
+        "Exceptions",
+        "Exception total min",
+      ],
+      p.pilots.flatMap((pilot) =>
+        pilot.observations.map((r) => [
+          pilot.name,
+          pilot.id,
+          pilot.at,
+          pilot.owner,
+          pilot.source,
+          r.task,
+          r.sampleCount,
+          r.manualMinutes,
+          r.handlingMinutes,
+          r.reviewMinutes,
+          r.exceptions,
+          r.exceptionMinutes,
+        ]),
+      ),
+    );
+    table(
+      "Pilot assessment",
+      [
+        "Pilot",
+        "Pilot revision ID",
+        "Saved at",
+        "Item",
+        "Value",
+        "Unit / currency",
+      ],
+      p.pilots.flatMap((x): Value[][] => {
+        const unit = (k: string) =>
+          /adoption|successRate|threshold|Roi/.test(k)
+            ? "fraction (0–1)"
+            : /[Hh]ours/.test(k)
+              ? "hours"
+              : /[Mm]inutes/.test(k)
+                ? "minutes"
+                : /[Mm]onths/.test(k)
+                  ? "months"
+                  : /cases|outcomes|releases/i.test(k)
+                    ? "count"
+                    : /[Cc]ost|[Bb]udget|spend|npv|Npv|investment|Opex|Net/.test(
+                          k,
+                        )
+                      ? x.currency
+                      : "";
+        return [
+          [x.name, "Captured hourly cost", x.hourlyCost, `${x.currency}/hour`],
+          [x.name, "Captured forecast revision", x.forecastRevision],
+          [x.name, "Disposition", x.disposition],
+          [x.name, "Stale", x.stale],
+          [x.name, "Period start", x.startDate],
+          [x.name, "Period end", x.endDate],
+          [x.name, "Limitations", x.limitations],
+          [x.name, "Rationale", x.rationale],
+          [x.name, "Eligible cases", x.eligibleCases],
+          [x.name, "Assisted cases", x.assistedCases],
+          [x.name, "Successful outcomes", x.successfulOutcomes],
+          [x.name, "Unsafe releases", x.unsafeReleased],
+          [x.name, "Pilot budget", x.budget],
+          [x.name, "Non-labour spend", x.nonLabourSpend],
+          [x.name, "Other human minutes", x.otherHumanMinutes],
+          [x.name, "Adoption threshold", x.thresholds.adoption],
+          [x.name, "Success threshold", x.thresholds.successRate],
+          ...Object.entries(x.metrics).map(([k, v]): Value[] => [x.name, k, v]),
+          ...(
+            [
+              "annualHoursSaved",
+              "investment",
+              "annualOpex",
+              "npv",
+              "cashNpv",
+              "firstYearNet",
+              "firstYearCashNet",
+              "economicRoi",
+              "cashRoi",
+              "paybackMonths",
+              "cashPaybackMonths",
+            ] as const
+          ).flatMap((k): Value[][] => [
+            [x.name, `Original forecast ${k}`, x.forecast[k]],
+            [x.name, `Pilot-informed projection ${k}`, x.projected[k]],
+          ]),
+          ...x.reasons.map((r): Value[] => [x.name, "Condition", r]),
+          [
+            x.name,
+            "Convention",
+            "Synthetic matched samples; annualised values are projections. Recorded pilot cost = non-labour spend + (handling + review + exceptions + other human minutes) / 60 × hourly cost. Manual comparator time is excluded. Cash is a subset, not an added benefit.",
+          ],
+        ].map((r): Value[] => [
+          r[0],
+          x.id,
+          x.at,
+          r[1],
+          r[2],
+          r[3] ?? unit(String(r[1])),
+        ]);
+      }),
+    );
+    table(
+      "Pilot changes",
+      [
+        "Pilot",
+        "Pilot revision ID",
+        "Saved at",
+        "Field",
+        "Unit",
+        "Forecast",
+        "Proposed",
+        "Application status",
+        "Review owner",
+        "Review rationale",
+      ],
+      p.pilots.flatMap((x) =>
+        x.changes.map((c) => [
+          x.name,
+          x.id,
+          x.at,
+          c.label,
+          c.field === "adoption" || c.field.endsWith("exceptionRate")
+            ? "fraction (0–1)"
+            : "minutes",
+          c.before,
+          c.after,
+          x.applied.length ? `Applied ${x.applied[0].at}` : "Proposed only",
+          x.applied[0]?.owner ?? "",
+          x.applied[0]?.rationale ?? "",
+        ]),
+      ),
+    );
+  }
   // No cell formulas, macros, external links, hidden sheets or raw JSON metadata.
   const bytes: ExcelJS.Buffer = await book.xlsx.writeBuffer();
   return new Blob([new Uint8Array(bytes)], {

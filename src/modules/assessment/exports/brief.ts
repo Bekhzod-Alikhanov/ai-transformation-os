@@ -5,7 +5,10 @@ export const shown = (value: string | number | null | undefined): string =>
   value === null || value === undefined || value === ""
     ? "Not assessed"
     : String(value);
-export const amount = (value: number | null, p: ExportPayload): string =>
+export const amount = (
+  value: number | null,
+  p: Pick<ExportPayload, "currency">,
+): string =>
   value === null
     ? "Not assessed"
     : new Intl.NumberFormat("en-GB", {
@@ -53,6 +56,25 @@ export function investmentBrief(p: ExportPayload): string {
       p.notice,
       `${md(provenance(p))}. Engagement revision ${p.engagementRevision}; model ${p.modelVersion}; schema ${p.schemaVersion}.`,
       `Client: ${md(p.client)} · Engagement: ${md(p.engagement)} · Currency: ${p.currency} (no FX conversion).`,
+      `## Partner decision brief`,
+      `Problem: ${md(excerpt(p.problem))}`,
+      `Decision requested: ${md(p.partner.decision)} — ${md(p.partner.selected)}. Calculated preferred intervention: ${md(p.partner.preferred)}.`,
+      `Why: ${md(p.partner.why)}. Alternatives: ${md(p.partner.alternatives)}`,
+      `Investment: ${amount(f.investment, p)}; first-year recurring OPEX: ${amount(f.annualOpex, p)}; economic NPV: ${amount(f.npv, p)}; cash-only NPV: ${amount(f.cashNpv, p)}.`,
+      ...p.partner.conditions.map((c) => `- ${md(c)}`),
+      `Accountable owner: ${md(p.partner.owner)}; next decision: ${md(p.partner.nextDecisionDate)}. Next step: ${md(p.partner.nextStep)}`,
+      ...p.pilots
+        .filter((x) => x.id === p.partner.latestPilotId)
+        .flatMap((x) => [
+          `### ${md(x.name)} — pilot-informed decision`,
+          `Advisory disposition: ${md(x.disposition)}${x.stale ? " — stale against captured case" : ""}. Synthetic sample ${md(x.startDate)} to ${md(x.endDate)}; source: ${md(x.source)}; owner: ${md(x.owner)}.`,
+          `Pilot revision ${x.id}, saved ${x.at}; captured currency ${x.currency}; loaded hourly cost ${amount(x.hourlyCost, x)}/hour; forecast revision ${x.forecastRevision}.`,
+          `Original forecast / pilot-informed annualised projection: hours released ${shown(x.forecast.annualHoursSaved)} / ${shown(x.projected.annualHoursSaved)}; economic NPV ${amount(x.forecast.npv, x)} / ${amount(x.projected.npv, x)}; cash-only NPV ${amount(x.forecast.cashNpv, x)} / ${amount(x.projected.cashNpv, x)}. These are projections, not realised savings.`,
+          `Sample adoption (fraction): ${shown(x.metrics.adoption)}; reviewed success (fraction): ${shown(x.metrics.successRate)}; recorded cost: ${amount(x.metrics.totalCost, x)}; cost per successful outcome: ${amount(x.metrics.costPerSuccess, x)}.`,
+          `First-year economic ROI (forecast / projection): ${metric(x.forecast.economicRoi, x.forecast, "roi")} / ${metric(x.projected.economicRoi, x.projected, "roi")}; cash ROI: ${metric(x.forecast.cashRoi, x.forecast, "roi")} / ${metric(x.projected.cashRoi, x.projected, "roi")}. Economic payback: ${metric(x.forecast.paybackMonths, x.forecast, "payback")} / ${metric(x.projected.paybackMonths, x.projected, "payback")}; cash payback: ${metric(x.forecast.cashPaybackMonths, x.forecast, "payback")} / ${metric(x.projected.cashPaybackMonths, x.projected, "payback")}.`,
+          `Limitations: ${md(x.limitations)}. Unrecorded labour can make recorded cost incomplete.`,
+          `Applied changes: ${x.applied.length ? x.applied.map((a) => `${md(a.owner)} at ${md(a.at)} — ${md(a.rationale)}`).join("; ") : "Not applied; saved financial assumptions remain unchanged."}`,
+        ]),
       `## Decision requested`,
       `${md(p.outcome)} — ${md(selected.name)}. Computed policy outcome: ${md(p.computedOutcome)}.`,
       `Objective: ${md(excerpt(p.objectives))}`,

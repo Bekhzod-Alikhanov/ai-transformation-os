@@ -19,6 +19,10 @@ Workshop answers, reviewed excerpts, mapped CSV/XLSX baselines and assumption re
 
 Clickable current/future workflows expose responsibility, sources, review and exceptions. Support execution is **Synthetic Replay**, not live AI. Reporting rules run locally on editable synthetic CSV; recorded AI comparisons only use their fixed dataset. Metrics are calculated from inspectable rows. Runs survive reload; stale or unsafe evaluations prevent an investment-ready recommendation.
 
+Pilot & Recommendation now includes editable synthetic pilot results: matched task timing totals, adoption, reviewed success, exceptions, recorded cost and forecast-versus-pilot-informed projections. Support has target and high-review-effort result sets, not additional engagements. Saved pilot revisions preserve the original forecast; applying findings requires explicit review and changes only the selected option's adoption and task effort. Shared baselines, costs and cash mechanisms are not overwritten. Pilot advice never clears outstanding evidence or evaluation gates.
+
+The partner brief summarizes the investment request, alternatives, economic/cash returns, pilot findings, conditions, owner and next decision. Markdown, the eight-slide steering pack and Excel all use the same saved basis. Timed samples and annualised projections are not proof of measured client savings; recorded pilot cost may be incomplete if human effort was not recorded.
+
 Conservative/base/upside/custom scenarios and reproducible 10,000-draw simulation summaries retain their seed, signature and model version. Markdown, an editable eight-slide PowerPoint and an Excel review workbook use one selected saved revision or recommendation snapshot. Internal notes are excluded by default. Workbook values and formula explanations are a review artifact, not a second financial engine.
 
 ## Persistence and boundaries
@@ -39,4 +43,4 @@ corepack pnpm verify
 
 Verification runs formatting, lint, strict types, unit tests, secret scanning, production build and desktop/tablet/mobile Playwright journeys. Automated checks do not establish complete screen-reader conformance, native Office compatibility or practitioner usefulness. Database/provider tests are outside this provider-free release.
 
-See [architecture](docs/architecture.md), [implementation ledger](docs/investment-demonstrator-progress.md), and [the written interview walkthrough](docs/interview-walkthrough.md). Previous acceptance reports describe earlier releases. Practitioner validation and Beck's live rehearsal remain separate human activities.
+See [architecture](docs/architecture.md), [partner upgrade ledger](docs/partner-pilot-progress.md), and [the written interview walkthrough](docs/interview-walkthrough.md). Previous acceptance reports describe earlier releases. Practitioner validation and Beck's live rehearsal remain separate human activities.

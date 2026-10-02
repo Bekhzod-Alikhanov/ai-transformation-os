@@ -28,13 +28,19 @@ In Investment Comparison, inspect tasks: current minutes, eligibility, handling,
 
 Open Agent & Evaluation. Inspect a future workflow node. Run synthetic support replay. Expand the refund-without-approval case: the unsupported recorded promise is blocked by policy and human escalation. Inspect the incorrectly routed invoice. Metrics come from rows rather than fixed headline scores. These are authored fixtures, not live AI.
 
-## 3:45–4:45 — Validation and handover
+## 3:45–5:00 — Pilot findings and partner decision
 
-Open Pilot & Recommendation. Generate a plan, review baseline, measurement method, owner, budget, controls and stop criteria, then save. Record **Validate through pilot**, with rationale, conditions and next decision date. This is advisory, not spending approval. Later changes mark the snapshot stale rather than rewriting history.
+Open Pilot & Recommendation and load **target performance**. Explain adoption, successful reviewed outcomes and recorded cost per successful outcome. These are synthetic timed samples, not live model metrics or actual client savings. Annualised projections retain the original annual workload and eligibility assumptions.
 
-Open Client deliverables, select the snapshot and preview/download Markdown, PowerPoint and Excel. They share the reviewed basis; internal notes are excluded by default.
+Edit the total review time for Prepare response. Point out the revised hours and NPV. Save a pilot revision, then **Review proposed assumption updates**. Show that only this option's adoption, handling, review and exception assumptions change. Enter Beck as application owner and a review rationale, then apply. The original forecast remains visible; shared baselines and other alternatives are preserved. Existing evidence and evaluation gates still require resolution.
 
-## 4:45–6:00 — When not to use AI
+Alternatively load **high-review-effort performance** to show negative hours released and Fix advice. Discard it or load target performance again before recording the conditional recommendation; loading a result set never silently overwrites a saved revision.
+
+Generate a plan, review baseline, measurement method, owner, budget, controls and stop criteria, then save. Record **Validate through pilot**, with rationale, conditions and next decision date. This is advisory, not spending approval. Later changes mark the snapshot stale rather than rewriting history.
+
+Open Client deliverables, select the snapshot and show the **Partner brief**. It connects the investment request, forecast/pilot-informed projection, unresolved conditions, owner and next decision. Preview/download Markdown, PowerPoint and Excel. They share the reviewed basis; internal notes are excluded by default.
+
+## 5:00–6:00 — When not to use AI
 
 Switch to Executive Reporting Automation: non-AI rules-based automation is preferred. Run local reporting rules and preview totals/variances. Compare the fixed recorded AI narrative: reconciliation catches unsupported “all departments over budget” claims.
 

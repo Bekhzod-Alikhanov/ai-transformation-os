@@ -9,6 +9,7 @@ import { ReadinessControls } from "./readiness";
 import { Validation } from "./validation";
 import { formatMetric } from "./financial-results";
 import { compareInvestment } from "../decision";
+import { PilotSurface } from "./pilot";
 export function Recommendation(props: SurfaceProps) {
   if (!props.opportunity)
     return (
@@ -46,6 +47,7 @@ function RecommendationContent(props: SurfaceProps) {
           Record a reasoned decision with its evidence and investment basis.
         </p>
       </div>
+      <PilotSurface {...props} />
       <ReadinessControls {...props} />
       <section className="aw-panel">
         <h2>Calculated advice · separate from Beck’s decision</h2>

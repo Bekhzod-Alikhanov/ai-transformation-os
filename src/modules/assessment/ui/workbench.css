@@ -907,3 +907,64 @@
 .aw-kpi strong.aw-negative {
   color: var(--aw-danger, #a72f3b);
 }
+.aw-pilot-verdict {
+  padding: 20px 24px;
+  background: #edf4f0;
+  border-left: 4px solid #287566;
+  border-radius: 6px;
+}
+.aw-pilot-verdict > span {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: #4b665a;
+}
+.aw-pilot-verdict > strong {
+  display: block;
+  font-size: 28px;
+  margin: 6px 0;
+}
+.aw-pilot-adverse {
+  background: #fbefef;
+  border-color: #a72f3b;
+}
+.aw-pilot-fields {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr);
+}
+.aw-pilot-fields > details {
+  min-width: 0;
+}
+.aw-pilot .aw-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.aw-pilot summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 12px 0;
+}
+.aw-pilot .aw-table-wrap input {
+  min-width: 90px;
+}
+.aw-pilot .aw-table-wrap .aw-field > span {
+  font-size: 10px;
+  max-width: 130px;
+}
+.aw-pilot-observed .aw-kpi strong {
+  font-size: 24px;
+}
+.aw-pilot-history {
+  padding: 14px 0;
+  border-bottom: 1px solid #dddcd5;
+}
+.aw-partner-summary {
+  border-top: 3px solid var(--aw-accent);
+}
+.aw-text-button {
+  text-align: left;
+}

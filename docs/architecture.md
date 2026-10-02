@@ -34,6 +34,23 @@ Legacy localStorage migration is explicit and retains its original. Backup resto
 
 `decision.ts` ranks complete options by selected economic/cash NPV after budget, payback, suitability and control gates. Exact ties favour lower complexity. Missing material facts require investigation, unresolved AI value requires a pilot, and non-AI can win. `assessment.ts` and `model.recordRecommendation` enforce evidence, readiness and evaluation gates on separate human recommendations. Strategic exceptions retain adverse economics.
 
+### Pilot findings and partner handover
+
+`pilot.ts` accepts versioned synthetic measurement drafts and captures the selected option/BAU forecast. Decimal arithmetic computes sample adoption, success, human effort and recorded pilot cost; the canonical financial engine calculates the projected annual case. Manual comparator times are excluded from recorded pilot spend. Annual workload and eligibility remain assumptions.
+
+```mermaid
+flowchart LR
+  F[Saved forecast] --> P[Matched synthetic pilot observations]
+  P --> A[Sample metrics and projected economics]
+  A --> R[Explicit assumption review]
+  R --> E[Accepted evidence and selected-option revisions]
+  E --> C[Existing comparison and readiness gates]
+  C --> S[Human recommendation snapshot]
+  S --> D[Partner brief / eight slides / workbook]
+```
+
+Pilot saves are append-only at the application layer, not tamper-proof. Basis signatures reject stale or inconsistent application, preserve the pre-pilot forecast and tolerate key ordering after schema validation. Applying timings never clears evidence/evaluation gates or modifies shared manual baselines, costs or cash mechanisms. Optional pilot fields preserve version 2/3 backup compatibility and the two existing storage namespaces. Export projection excludes raw basis strings and internal notes unless explicitly enabled.
+
 ## Evidence, replay and handover
 
 Manual excerpts and mapped imports stay local. Source review and assumption revision are distinct; workshop answers affect readiness without changing numbers. Workflow nodes are inspectable task responsibilities, not a general designer.

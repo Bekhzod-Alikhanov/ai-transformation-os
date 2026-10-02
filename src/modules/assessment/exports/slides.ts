@@ -65,6 +65,7 @@ export async function createSteeringPack(p: ExportPayload): Promise<Blob> {
     cream = "F7F4ED";
   const selected = p.options.find((o) => o.selected)!,
     f = selected.financial;
+  const pilot = p.pilots.find((x) => x.id === p.partner.latestPilotId);
   function text(
     slide: PptxGenJS.Slide,
     value: string,
@@ -361,8 +362,10 @@ export async function createSteeringPack(p: ExportPayload): Promise<Blob> {
     );
   card(
     s,
-    "Steady-state value bridge",
-    `Capacity: ${amount(f.capacityValue, p)}. Total benefit: ${amount(f.annualBenefit, p)}. Cash subset: ${amount(f.cashSavings, p)}. OPEX (year 1): ${amount(f.annualOpex, p)}.`,
+    pilot ? "Forecast → pilot projection" : "Steady-state value bridge",
+    pilot
+      ? `Annual hours: ${shown(pilot.forecast.annualHoursSaved)} → ${shown(pilot.projected.annualHoursSaved)}. Economic NPV: ${amount(pilot.forecast.npv, pilot)} → ${amount(pilot.projected.npv, pilot)}. Annualised, not realised savings.`
+      : `Capacity: ${amount(f.capacityValue, p)}. Total benefit: ${amount(f.annualBenefit, p)}. Cash subset: ${amount(f.cashSavings, p)}. OPEX (year 1): ${amount(f.annualOpex, p)}.`,
     8.7,
     2.38,
     3.9,
@@ -371,7 +374,9 @@ export async function createSteeringPack(p: ExportPayload): Promise<Blob> {
   card(
     s,
     "36-month decision metrics",
-    `Economic NPV: ${amount(f.npv, p)}. Cash NPV: ${amount(f.cashNpv, p)}. Economic payback: ${metric(f.paybackMonths, f, "payback")}.`,
+    pilot
+      ? `Cash NPV: ${amount(pilot.forecast.cashNpv, pilot)} → ${amount(pilot.projected.cashNpv, pilot)}. Pilot-informed payback: ${metric(pilot.projected.paybackMonths, pilot.projected, "payback")}.`
+      : `Economic NPV: ${amount(f.npv, p)}. Cash NPV: ${amount(f.cashNpv, p)}. Economic payback: ${metric(f.paybackMonths, f, "payback")}.`,
     8.7,
     4.65,
     3.9,
@@ -503,9 +508,13 @@ export async function createSteeringPack(p: ExportPayload): Promise<Blob> {
     );
     text(
       s,
-      v.field === "budgetCeiling"
-        ? amount(v.value as number | null, p)
-        : shown(v.value),
+      pilot && v.field === "hypotheses"
+        ? `Pilot: ${pilot.disposition}. Adoption (fraction) ${shown(pilot.metrics.adoption)}; reviewed success (fraction) ${shown(pilot.metrics.successRate)}; recorded cost ${amount(pilot.metrics.totalCost, pilot)}.`
+        : pilot && v.field === "method"
+          ? `${pilot.source}. ${pilot.limitations} Full measurements: Pilot observations workbook.`
+          : v.field === "budgetCeiling"
+            ? amount(v.value as number | null, p)
+            : shown(v.value),
       x,
       y + 0.27,
       5.7,
@@ -517,11 +526,22 @@ export async function createSteeringPack(p: ExportPayload): Promise<Blob> {
 
   s = page(7, "Overview, Validation, Methods");
   card(s, "Recommendation", `${p.outcome}. ${p.rationale}`, 0.65, 2.38);
-  card(s, "Conditions", p.conditions, 7, 2.38);
+  card(
+    s,
+    "Conditions",
+    [
+      ...p.partner.conditions,
+      ...(pilot
+        ? [`Pilot: ${pilot.disposition}${pilot.stale ? " — stale basis" : ""}`]
+        : []),
+    ].join(" ") || p.conditions,
+    7,
+    2.38,
+  );
   card(
     s,
     "Next decision",
-    `${shown(p.nextDecisionDate)}. Owner: ${shown(p.validation.find((v) => v.field === "owner")?.value)}. Sponsor: ${shown(p.sponsor)}.`,
+    `${p.partner.nextDecisionDate}. Owner: ${p.partner.owner}. Sponsor: ${shown(p.sponsor)}. ${p.partner.nextStep}`,
     0.65,
     4.38,
   );

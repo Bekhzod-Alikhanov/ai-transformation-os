@@ -240,6 +240,69 @@ export const outcomeSchema = z.enum([
   "Defer",
   "Reject",
 ]);
+export const pilotObservationSchema = z.object({
+  taskId: id,
+  sampleCount: number.int().nullable(),
+  manualMinutes: number.nullable(),
+  handlingMinutes: number.nullable(),
+  reviewMinutes: number.nullable(),
+  exceptions: number.int().nullable(),
+  exceptionMinutes: number.nullable(),
+});
+export const pilotDraftSchema = z.object({
+  version: z.literal(1),
+  optionId: id,
+  name: z.string(),
+  startDate: dateSchema,
+  endDate: dateSchema,
+  owner: z.string(),
+  limitations: z.string(),
+  source: z.string(),
+  rationale: z.string(),
+  eligibleCases: number.int().nullable(),
+  assistedCases: number.int().nullable(),
+  successfulOutcomes: number.int().nullable(),
+  unsafeReleased: number.int().nullable(),
+  budget: number.nullable(),
+  nonLabourSpend: number.nullable(),
+  otherHumanMinutes: number.nullable(),
+  thresholds: z.object({
+    adoption: fraction.nullable(),
+    successRate: fraction.nullable(),
+  }),
+  observations: z.array(pilotObservationSchema),
+  forecast: z.object({
+    basis: z.string(),
+    option: solutionOptionSchema,
+    bau: solutionOptionSchema,
+    sourceRevision: revision,
+    currency: currencySchema,
+  }),
+});
+export const pilotRevisionSchema = pilotDraftSchema.extend({
+  id,
+  at: z.iso.datetime(),
+});
+export const pilotApplicationSchema = z.object({
+  id,
+  pilotId: id,
+  evidenceId: id,
+  at: z.iso.datetime(),
+  owner: z.string(),
+  rationale: z.string(),
+  basisAfter: z.string(),
+  changes: z.array(
+    z.object({
+      field: z.string(),
+      before: z.number().finite().nullable(),
+      after: z.number().finite().nullable(),
+    }),
+  ),
+});
+export type PilotObservation = z.infer<typeof pilotObservationSchema>;
+export type PilotDraft = z.infer<typeof pilotDraftSchema>;
+export type PilotRevision = z.infer<typeof pilotRevisionSchema>;
+export type PilotApplication = z.infer<typeof pilotApplicationSchema>;
 const dimensionSchema = z.enum(["unknown", "ready", "concern"]);
 export const assessmentResultSchema = z.object({
   outcome: outcomeSchema,
@@ -295,6 +358,8 @@ export const opportunitySnapshotSchema = z.object({
   budgetCeiling: number.nullable(),
   questions: z.array(workshopQuestionSchema).optional(),
   evaluations: z.array(evaluationRunSchema).optional(),
+  pilots: z.array(pilotRevisionSchema).optional(),
+  pilotApplications: z.array(pilotApplicationSchema).optional(),
   decisionPolicy: z
     .object({
       objective: z.enum(["economic", "cash"]),
@@ -363,6 +428,8 @@ function validateOpportunityIntegrity(
     opportunity.assumptions,
     opportunity.questions ?? [],
     opportunity.evaluations ?? [],
+    opportunity.pilots ?? [],
+    opportunity.pilotApplications ?? [],
   ].forEach((list) => list.forEach(register));
   const options = new Set(opportunity.options.map((option) => option.id));
   const evidence = new Set(opportunity.evidence.map((source) => source.id));
@@ -389,6 +456,29 @@ function validateOpportunityIntegrity(
   for (const run of opportunity.evaluations ?? [])
     if (!options.has(run.optionId))
       issue(`Broken evaluation option: ${run.id}`);
+  for (const pilot of opportunity.pilots ?? []) {
+    if (
+      !options.has(pilot.optionId) ||
+      pilot.forecast.option.id !== pilot.optionId ||
+      pilot.forecast.bau.kind !== "bau"
+    )
+      issue(`Broken pilot option: ${pilot.id}`);
+    const tasks = new Set(
+      pilot.forecast.option.taskPlan?.rows.map((t) => t.id),
+    );
+    const seen = new Set<string>();
+    for (const row of pilot.observations) {
+      if (!tasks.has(row.taskId) || seen.has(row.taskId))
+        issue(`Broken or duplicate pilot task: ${row.taskId}`);
+      seen.add(row.taskId);
+    }
+  }
+  for (const applied of opportunity.pilotApplications ?? [])
+    if (
+      !opportunity.pilots?.some((p) => p.id === applied.pilotId) ||
+      !evidence.has(applied.evidenceId)
+    )
+      issue(`Broken pilot application: ${applied.id}`);
   for (const assumption of opportunity.assumptions)
     if (
       !options.has(assumption.optionId) ||

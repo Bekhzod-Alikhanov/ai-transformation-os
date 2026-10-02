@@ -5,6 +5,7 @@ import type { DeliverablesProps } from "../ui/surface";
 import { artifactAccent } from "../brand";
 import { compareInvestment } from "../decision";
 import { evaluationMetrics } from "../evaluation";
+import { assessPilot } from "../pilot";
 
 export const DISCLOSURE =
   "Synthetic assessment only. Advisory projections, not measured client results or certification.";
@@ -159,6 +160,74 @@ export function prepareSelection(
     ...o,
     recommendations: [],
   });
+  const pilots = (o.pilots ?? []).map((pilot) => {
+    const a = assessPilot(
+      e as Engagement,
+      { ...o, recommendations: [] },
+      pilot,
+    );
+    return {
+      id: pilot.id,
+      currency: pilot.forecast.currency,
+      hourlyCost: pilot.forecast.option.inputs.hourlyCost,
+      forecastRevision: pilot.forecast.sourceRevision,
+      name: pilot.name,
+      optionId: pilot.optionId,
+      owner: pilot.owner,
+      at: pilot.at,
+      startDate: pilot.startDate,
+      endDate: pilot.endDate,
+      limitations: pilot.limitations,
+      source: pilot.source,
+      rationale: pilot.rationale,
+      eligibleCases: pilot.eligibleCases,
+      assistedCases: pilot.assistedCases,
+      successfulOutcomes: pilot.successfulOutcomes,
+      unsafeReleased: pilot.unsafeReleased,
+      budget: pilot.budget,
+      nonLabourSpend: pilot.nonLabourSpend,
+      otherHumanMinutes: pilot.otherHumanMinutes,
+      thresholds: { ...pilot.thresholds },
+      observations: pilot.observations.map((r) => ({
+        ...r,
+        task:
+          pilot.forecast.option.taskPlan?.rows.find((t) => t.id === r.taskId)
+            ?.name ?? "Historical task",
+      })),
+      metrics: a.metrics,
+      forecast: a.forecast,
+      projected: a.projected,
+      disposition: a.disposition,
+      reasons: a.reasons.map((r) => r.message),
+      stale: a.stale,
+      baselineDiscrepancies: a.baselineDiscrepancies,
+      changes: a.changes.map((c) => ({
+        ...c,
+        label: c.field.startsWith("tasks.")
+          ? `${pilot.forecast.option.taskPlan?.rows.find((t) => t.id === c.field.split(".")[1])?.name ?? "Historical task"} / ${c.field.split(".")[2]}`
+          : c.field,
+      })),
+      applied: (o.pilotApplications ?? [])
+        .filter((r) => r.pilotId === pilot.id)
+        .map((r) => ({
+          at: r.at,
+          owner: r.owner,
+          rationale: r.rationale,
+          changes: r.changes.map((c) => ({ ...c })),
+        })),
+    };
+  });
+  const latestPilot = pilots.filter((p) => p.optionId === selected.id).at(-1);
+  const partnerConditions = [
+    ...new Set([
+      ...(snapshot?.conditions ? [snapshot.conditions] : []),
+      ...(latestPilot?.reasons ?? []),
+      ...assessment.blockers.map((b) => b.message),
+      ...o.requests
+        .filter((r) => r.status === "open")
+        .map((r) => `${r.question} — ${r.owner || "owner unassigned"}`),
+    ]),
+  ].slice(0, 3);
   return {
     title: `${brand.name || "Assessment"} · ${o.name || "Untitled opportunity"}`,
     brand: {
@@ -168,6 +237,26 @@ export function prepareSelection(
     notice: DISCLOSURE,
     modelVersion: selected.taskPlan ? "assessment-v3.0" : "assessment-v2.1",
     schemaVersion: 3,
+    pilots,
+    partner: {
+      preferred: comparison.preferredName,
+      decision: snapshot?.outcome ?? assessment.outcome,
+      selected: selected.name,
+      why: snapshot?.rationale ?? comparison.reasons.join(" "),
+      alternatives: snapshot?.alternativesRejected || comparison.reasons[0],
+      conditions: partnerConditions,
+      owner:
+        latestPilot?.owner ||
+        o.validation.owner ||
+        e.processOwner ||
+        "Owner unassigned",
+      nextDecisionDate:
+        snapshot?.nextDecisionDate || e.decisionDeadline || "Date not set",
+      nextStep: latestPilot
+        ? `${latestPilot.disposition}: ${latestPilot.reasons[0] ?? "Sponsor review required"}`
+        : "Collect representative pilot timings and validate controls before scaling.",
+      latestPilotId: latestPilot?.id ?? null,
+    },
     comparison: {
       outcome: comparison.outcome,
       preferredName: comparison.preferredName,
