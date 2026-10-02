@@ -18,7 +18,7 @@ Authority: Beck's approved Three-Day Partner Demo Upgrade in this conversation.
 
 ## Verification
 
-Implementation and local release checks complete. Production deployment/acceptance pending.
+Implementation, local release checks and production acceptance complete. Beck's final rehearsal remains outstanding.
 
 - Task 1: pilot arithmetic, unsafe precedence, unknowns, negative effort, reviewed application, stale rejection, duplication and backup tests passing (11 targeted tests).
 - Task 2: UI save/review/apply and frozen-snapshot partner workbook tests passing (2 targeted tests); full app checks in progress.
@@ -33,3 +33,5 @@ Implementation and local release checks complete. Production deployment/acceptan
 - Ruling: the approved deployment instruction overrides the finishing skill's merge-choice menu. Squash into main only after release checks; push triggers Vercel. Cost if wrong: production publishing rather than leaving a preview branch.
 - Final local `corepack pnpm verify`: formatting, lint, strict types, 381 unit tests / 102 files, secret scan, production build and 93 browser tests all pass. Browser projects cover 1440/1024/390px, automated WCAG A/AA checks and all three downloads. A Windows teardown hang required terminating only the verified Next.js test-server PID; the verification command then exited 0. No application or dependency workaround added.
 - Additional direct keyboard check: focused Load target performance and Enter activates the expected Extend pilot state. Desktop pilot surface visually inspected. Full manual screen-reader/Office review and Beck's persuasive rehearsal remain unverified; no certification claimed.
+- Production: implementation squashed into main as `40f31df`, pushed through the existing Git/Vercel workflow. Vercel reported Deployment has completed for that exact commit; public `GET /` returned 200. All 27 live acceptance checks passed across desktop/tablet/mobile: both cases, no-email entry, demo isolation/reset, persistence, pilot review/application, adverse disposition, accessibility and matching export downloads. Subsequent release-record commit changes this document only; application code remains the accepted release.
+- Boundary: two synthetic examples, local persistence and recorded replay only. No provider/API/cloud database setup, confidential-data suitability, real realised savings or practitioner persuasiveness claimed.
