@@ -1,6 +1,7 @@
 "use client";
 import { useState, type CSSProperties } from "react";
 import { reviseEngagement } from "./model";
+import { createTemplate } from "./templates";
 import type {
   SurfaceProps,
   NavigationTarget,
@@ -15,26 +16,33 @@ import { Evidence } from "./ui/evidence";
 import { Options } from "./ui/options";
 import { Recommendation } from "./ui/recommendation";
 import { Deliverables } from "./ui/deliverables";
+import { Cockpit } from "./ui/cockpit";
+import { EvaluationSurface } from "./ui/evaluation";
+import { Workshop } from "./ui/workshop";
 import { Inspector } from "./ui/inspector";
 import { BackupControls } from "./ui/recovery";
 import { downloadBackup, ErrorMessage, errorText, Select } from "./ui/fields";
 import { safeAccent } from "./ui/operations";
 import "./ui/workbench.css";
 
-export function AssessmentWorkbench() {
+export function AssessmentWorkbench({
+  mode = "workbench",
+}: {
+  mode?: "workbench" | "demo";
+}) {
   return (
     <DraftProvider>
-      <Workbench />
+      <Workbench mode={mode} />
     </DraftProvider>
   );
 }
-function Workbench() {
-  const store = useWorkspace(),
+function Workbench({ mode }: { mode: "workbench" | "demo" }) {
+  const store = useWorkspace(mode),
     drafts = useDrafts();
   const [engagementId, setEngagementId] = useState<string | null>(null),
     [opportunityIds, setOpportunityIds] = useState<Record<string, string>>({});
-  const [home, setHome] = useState(true),
-    [section, setSection] = useState<Section>("brief"),
+  const [home, setHome] = useState(mode !== "demo"),
+    [section, setSection] = useState<Section>("overview"),
     [recordId, setRecordId] = useState<string>();
   const [inspector, setInspector] = useState<InspectorContent | null>(null),
     [inspectorOpen, setInspectorOpen] = useState(false),
@@ -131,7 +139,9 @@ function Workbench() {
           </div>
         </div>
         <p className="aw-local">Local only · synthetic data only</p>
-        <a href="/demo">Open legacy demo</a>
+        <a href={mode === "demo" ? "/workbench" : "/demo"}>
+          {mode === "demo" ? "My saved assessments" : "Open synthetic examples"}
+        </a>
         {!store.opening && !store.rawBackup && !(store.error && !workspace) && (
           <BackupControls
             key={restoration}
@@ -143,8 +153,11 @@ function Workbench() {
         )}
       </header>
       <div className="aw-warning">
-        Independent assessment workspace · use synthetic information only. No
-        live AI or provider connections.
+        {mode === "demo"
+          ? "Synthetic demonstrator"
+          : "Local assessment prototype"}{" "}
+        · no real client data, live AI or provider connections. Beck’s
+        investment decision & delivery workbench.
       </div>
       <div className="aw-toolbar">
         <button onClick={() => setHome(true)}>Work queue</button>
@@ -152,7 +165,9 @@ function Workbench() {
           <Select
             label="Engagement"
             value={engagement?.id ?? ""}
-            onChange={(id) => navigate({ section: "brief", engagementId: id })}
+            onChange={(id) =>
+              navigate({ section: "overview", engagementId: id })
+            }
           >
             {workspace.engagements.map((e) => (
               <option key={e.id} value={e.id}>
@@ -186,6 +201,69 @@ function Workbench() {
               : store.notice || "Local record ready"}
         </p>
         {drafts.dirty && <span className="aw-tag">Unsaved drafts</span>}
+        {surfaces && (
+          <button onClick={() => navigate({ section: "brief" })}>
+            Edit engagement brief
+          </button>
+        )}
+        {surfaces && (
+          <button onClick={() => navigate({ section: "deliverables" })}>
+            Client deliverables
+          </button>
+        )}
+        {engagement && (
+          <button
+            onClick={() =>
+              inspect({
+                title: "Engagement history",
+                content: (
+                  <ol>
+                    {engagement.history
+                      .slice()
+                      .reverse()
+                      .map((h) => (
+                        <li key={h.id}>
+                          {h.detail} · r{h.revision} · {h.at}
+                        </li>
+                      ))}
+                  </ol>
+                ),
+              })
+            }
+          >
+            History
+          </button>
+        )}
+        {mode === "demo" && (
+          <button
+            disabled={store.busy}
+            onClick={async () => {
+              if (
+                !window.confirm(
+                  "Reset only the synthetic demonstration? Saved workbench assessments are not affected. Back up demo changes first if needed.",
+                )
+              )
+                return;
+              try {
+                await store.commit(() => ({
+                  ...workspace!,
+                  engagements: [
+                    createTemplate("support"),
+                    createTemplate("reporting"),
+                  ],
+                }));
+                resetRestoredView();
+                setEngagementId(null);
+                setHome(false);
+                setSection("overview");
+              } catch (cause) {
+                setLocalError(errorText(cause));
+              }
+            }}
+          >
+            Reset demo
+          </button>
+        )}
       </div>
       <ErrorMessage error={store.error || localError} />
       {store.stale && (
@@ -258,11 +336,11 @@ function Workbench() {
             {surfaces && !home ? (
               (
                 [
-                  ["brief", "Brief"],
-                  ["evidence", "Evidence"],
-                  ["options", "Options & Value"],
-                  ["recommendation", "Recommendation"],
-                  ["deliverables", "Deliverables"],
+                  ["overview", "Decision Overview"],
+                  ["evidence", "Process & Evidence"],
+                  ["options", "Investment Comparison"],
+                  ["evaluation", "Agent & Evaluation"],
+                  ["recommendation", "Pilot & Recommendation"],
                 ] as const
               ).map(([id, name], i) => (
                 <button
@@ -322,6 +400,8 @@ function Workbench() {
                 busy={store.busy}
                 navigate={navigate}
               />
+            ) : section === "overview" ? (
+              <Cockpit {...surfaces} />
             ) : section === "brief" ? (
               <Brief {...surfaces} />
             ) : section === "options" ? (
@@ -335,11 +415,20 @@ function Workbench() {
                 opportunity={opportunity}
                 brand={workspace!.brand}
               />
+            ) : section === "evaluation" ? (
+              <EvaluationSurface {...surfaces} />
             ) : (
-              <Evidence
-                key={`${opportunity?.id}:${recordId ?? ""}`}
-                {...surfaces}
-              />
+              <div className="aw-stack">
+                <Workshop {...surfaces} />
+                <Evidence
+                  key={`${opportunity?.id}:${recordId ?? ""}`}
+                  {...surfaces}
+                />
+                <details className="aw-panel">
+                  <summary>Engagement brief & process editor</summary>
+                  <Brief {...surfaces} />
+                </details>
+              </div>
             )}
           </main>
           <Inspector

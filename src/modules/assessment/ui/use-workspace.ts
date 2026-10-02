@@ -8,8 +8,10 @@ import {
 } from "../repository";
 import type { Workspace } from "../types";
 import { errorText } from "./fields";
+import { createWorkspace } from "../model";
+import { createTemplate } from "../templates";
 
-export function useWorkspace() {
+export function useWorkspace(mode: "workbench" | "demo" = "workbench") {
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [opening, setOpening] = useState(true),
     [busy, setBusy] = useState(false);
@@ -24,13 +26,22 @@ export function useWorkspace() {
     let cancelled = false;
     void (async () => {
       try {
-        const repo = await openRepository();
+        const repo = await openRepository(mode);
         if (cancelled) {
           repo.close();
           return;
         }
         repository.current = repo;
-        const loaded = await repo.load();
+        let loaded = await repo.load();
+        if (!loaded && mode === "demo") {
+          const initial = createWorkspace();
+          initial.engagements = [
+            createTemplate("support"),
+            createTemplate("reporting"),
+          ];
+          initial.brand.name = "AI Transformation OS";
+          loaded = await repo.save(initial, null);
+        }
         if (cancelled) return;
         latest.current = loaded;
         setWorkspace(loaded);
@@ -49,7 +60,7 @@ export function useWorkspace() {
       repository.current?.close();
       repository.current = null;
     };
-  }, []);
+  }, [mode]);
 
   async function commit(update: (current: Workspace | null) => Workspace) {
     if (pending.current || opening)

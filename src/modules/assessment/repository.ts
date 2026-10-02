@@ -1,6 +1,5 @@
 import { workspaceSchema, type Workspace } from "./types";
 
-const DATABASE_NAME = "beck-assessment-workbench";
 const DATABASE_VERSION = 1;
 const STORE_NAME = "workspace";
 const ACTIVE_KEY = "active";
@@ -43,13 +42,23 @@ function rawBackup(value: unknown): string | null {
 }
 
 function validateStored(value: unknown): Workspace {
-  const parsed = workspaceSchema.safeParse(value);
+  const parsed = workspaceSchema.safeParse(upgradeCopy(value));
   if (!parsed.success)
     throw new CorruptWorkspaceError(
-      "The saved assessment is not a valid version 2 workspace. Export the raw backup before restoring or repairing it; the stored record has not been changed.",
+      "The saved assessment is not a valid version 2 or 3 workspace. Export the raw backup before restoring or repairing it; the stored record has not been changed.",
       rawBackup(value),
     );
   return parsed.data;
+}
+function upgradeCopy(value: unknown): unknown {
+  if (
+    value &&
+    typeof value === "object" &&
+    "schemaVersion" in value &&
+    value.schemaVersion === 2
+  )
+    return { ...structuredClone(value), schemaVersion: 3 };
+  return value;
 }
 
 function transactionMessage(action: string, error: DOMException | null) {
@@ -78,11 +87,11 @@ export function parseBackup(text: string): Workspace {
     value && typeof value === "object" && "schemaVersion" in value
       ? (value as { schemaVersion?: unknown }).schemaVersion
       : undefined;
-  if (version !== 2)
+  if (version !== 2 && version !== 3)
     throw new Error(
-      `Backup version ${String(version ?? "missing")} is not supported. This workbench accepts version 2; keep the original backup for recovery or migration.`,
+      `Backup version ${String(version ?? "missing")} is not supported. This workbench accepts version 2 or 3; keep the original backup for recovery or migration.`,
     );
-  const parsed = workspaceSchema.safeParse(value);
+  const parsed = workspaceSchema.safeParse(upgradeCopy(value));
   if (!parsed.success)
     throw new Error(
       `Backup validation failed and nothing was restored: ${parsed.error.issues.map((issue) => issue.message).join("; ")}. Keep the original backup for recovery.`,
@@ -90,7 +99,9 @@ export function parseBackup(text: string): Workspace {
   return parsed.data;
 }
 
-export function openRepository(): Promise<AssessmentRepository> {
+export function openRepository(
+  mode: "workbench" | "demo" = "workbench",
+): Promise<AssessmentRepository> {
   if (typeof indexedDB === "undefined")
     return Promise.reject(
       new Error(
@@ -105,7 +116,10 @@ export function openRepository(): Promise<AssessmentRepository> {
         `IndexedDB could not open${error instanceof Error ? ` (${error.message})` : ""}. Check browser storage permissions and reopen the workbench.`,
       );
     try {
-      request = indexedDB.open(DATABASE_NAME, DATABASE_VERSION);
+      request = indexedDB.open(
+        mode === "demo" ? "beck-investment-demo" : "beck-assessment-workbench",
+        DATABASE_VERSION,
+      );
     } catch (error) {
       reject(openingError(error));
       return;
@@ -255,6 +269,10 @@ export function openRepository(): Promise<AssessmentRepository> {
                   ...validated,
                   revision: (current?.revision ?? 0) + 1,
                 });
+                // First v3 save retains the exact original v2 record, in the same
+                // transaction. Failed saves cannot delete or partially migrate it.
+                if (get.result?.schemaVersion === 2)
+                  store.put(get.result, "retained-version-2-original");
                 const put = store.put(saved, ACTIVE_KEY);
                 put.onerror = (event) => {
                   event.preventDefault();

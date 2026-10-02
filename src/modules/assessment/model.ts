@@ -12,7 +12,7 @@ import { assessOpportunity } from "./assessment";
 export const newId = () => crypto.randomUUID();
 export function createWorkspace(): Workspace {
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     revision: 0,
     engagements: [],
     brand: { name: "Beck", accent: "#2358d5" },
@@ -138,13 +138,29 @@ export function duplicateEngagement(engagement: Engagement): Engagement {
       value.id = newId();
       ids.set(old, value.id);
     };
-    [o.options, o.evidence, o.requests, o.processSteps, o.assumptions].forEach(
-      (list) => list.forEach(reidentify),
-    );
+    [
+      o.options,
+      o.evidence,
+      o.requests,
+      o.processSteps,
+      o.assumptions,
+      o.questions ?? [],
+      o.evaluations ?? [],
+    ].forEach((list) => list.forEach(reidentify));
     for (const option of o.options)
-      [option.costs, option.benefits, option.scenarios].forEach((list) =>
-        list.forEach(reidentify),
-      );
+      [
+        option.costs,
+        option.benefits,
+        option.scenarios,
+        option.taskPlan?.rows ?? [],
+      ].forEach((list) => list.forEach(reidentify));
+    for (const option of o.options)
+      for (const task of option.taskPlan?.rows ?? [])
+        task.evidenceIds = task.evidenceIds.map((eid) => ids.get(eid)!);
+    for (const question of o.questions ?? [])
+      question.evidenceIds = question.evidenceIds.map((eid) => ids.get(eid)!);
+    for (const run of o.evaluations ?? [])
+      run.optionId = ids.get(run.optionId)!;
     o.selectedOptionId = ids.get(o.selectedOptionId)!;
     for (const a of o.assumptions) {
       a.optionId = ids.get(a.optionId)!;
@@ -152,7 +168,9 @@ export function duplicateEngagement(engagement: Engagement): Engagement {
       const parts = a.field.split(".");
       if (
         parts.length === 3 &&
-        (parts[0] === "costs" || parts[0] === "benefits")
+        (parts[0] === "costs" ||
+          parts[0] === "benefits" ||
+          parts[0] === "tasks")
       ) {
         parts[1] = ids.get(parts[1]) ?? parts[1];
         a.field = parts.join(".");
@@ -219,14 +237,29 @@ export function recordRecommendation(
   const assessment = assessOpportunity(draft, opportunity);
   if (input.outcome === "Recommend investment") {
     const hardBlock =
-      assessment.blockers.some((b) => b.section === "evidence") ||
+      assessment.blockers.some(
+        (b) => b.section === "evidence" || b.section === "evaluation",
+      ) ||
       assessment.dimensions.risk !== "ready" ||
       assessment.dimensions.value === "unknown" ||
       opportunity.feasibility !== "ready" ||
       opportunity.adoption !== "ready";
+    const selected = opportunity.options.find(
+      (x) => x.id === opportunity.selectedOptionId,
+    )!;
+    const optionGate =
+      selected.readiness &&
+      (selected.readiness.controlsOpen ||
+        selected.readiness.validationRequired ||
+        selected.readiness.data !== "ready" ||
+        selected.readiness.technical !== "ready");
+    if (optionGate || opportunity.questions?.some((q) => q.unresolved))
+      throw new Error(
+        "Investment is blocked until option-specific validation and discovery questions are resolved",
+      );
     if (hardBlock || assessment.outcome === "Defer")
       throw new Error(
-        "Investment is blocked by evidence, controls, budget or readiness",
+        "Investment is blocked by evidence, evaluation validation, controls, budget or readiness",
       );
     if (assessment.outcome === "Reject" && !input.strategicException.trim())
       throw new Error(

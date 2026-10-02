@@ -1,5 +1,6 @@
 import { materialFields } from "../assessment";
 import { newId } from "../model";
+import { shareTaskBaseline } from "../tasks";
 import {
   solutionOptionSchema,
   simulationSummarySchema,
@@ -95,6 +96,8 @@ export function saveOption(
       benefits: x.benefits,
       cashMechanism: x.cashMechanism,
       reviewAllocation: x.reviewAllocation,
+      taskPlan: x.taskPlan,
+      readiness: x.readiness,
     });
   if (expected && basis(expected) !== basis(old))
     throw new Error(
@@ -112,6 +115,7 @@ export function saveOption(
       next.options.forEach((x) => {
         x.inputs[field] = parsed.inputs[field];
       });
+  shareTaskBaseline(next.options, target, old);
   for (const candidate of next.options) {
     const previous = materialFields(
       o.options.find((x) => x.id === candidate.id)!,

@@ -1,56 +1,10 @@
-import { render, screen } from "@testing-library/react";
-import { vi } from "vitest";
-
-import { getWorkspaceContext } from "@/modules/auth/workspace-context.server";
-
 import HomePage from "./page";
-
-vi.mock("@/modules/auth/workspace-context.server", () => ({
-  getWorkspaceContext: vi.fn(),
-}));
-
-vi.mock("@/modules/auth/request-actor", () => ({
-  getRequestActor: vi.fn(async () => ({ userId: "beck-1" })),
-}));
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
-  redirect: vi.fn(() => {
-    throw new Error("NEXT_REDIRECT:/demo");
-  }),
-}));
+import { AssessmentWorkbench } from "@/modules/assessment/workbench";
 
 describe("HomePage", () => {
-  it("sends signed-out visitors directly to the public replay", async () => {
-    vi.mocked(getWorkspaceContext).mockResolvedValue(null);
-
-    await expect(HomePage()).rejects.toThrow("NEXT_REDIRECT:/demo");
-  });
-
-  it("does not present Aster metrics inside a live workspace", async () => {
-    vi.mocked(getWorkspaceContext).mockResolvedValue({
-      organisationId: "beck-org",
-      mode: "live",
-      displayName: "Beck",
-      role: "owner",
-      capabilities: ["overview"],
-    });
-
-    render(await HomePage());
-
-    expect(screen.getByRole("heading", { name: "My Work" })).toBeVisible();
-    expect(screen.queryByText("$8.4M")).not.toBeInTheDocument();
-  });
-
-  it("redirects a synthetic workspace to the isolated replay", async () => {
-    vi.mocked(getWorkspaceContext).mockResolvedValue({
-      organisationId: "demo-org",
-      mode: "synthetic_replay",
-      displayName: "Synthetic Replay",
-      role: "owner",
-      capabilities: ["overview"],
-    });
-
-    await expect(HomePage()).rejects.toThrow("NEXT_REDIRECT:/demo");
+  it("registers the immediate populated synthetic product instead of an auth redirect", () => {
+    const page = HomePage();
+    expect(page.type).toBe(AssessmentWorkbench);
+    expect(page.props.mode).toBe("demo");
   });
 });

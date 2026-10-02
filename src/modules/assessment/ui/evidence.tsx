@@ -15,7 +15,7 @@ export function Evidence(props: SurfaceProps) {
   if (!opportunity)
     return (
       <section className="aw-panel">
-        <h1 className="aw-surface-title">Evidence</h1>
+        <h2 className="aw-surface-title">Evidence</h2>
         <p>Create and select an opportunity in Brief to collect evidence.</p>
         <button onClick={() => props.navigate({ section: "brief" })}>
           Open Brief
@@ -27,7 +27,7 @@ export function Evidence(props: SurfaceProps) {
     <div className="aw-stack">
       <section className="aw-panel">
         <p className="aw-eyebrow">02 / Establish what is known</p>
-        <h1 className="aw-surface-title">Evidence review</h1>
+        <h2 className="aw-surface-title">Evidence review</h2>
         <p>
           Accepted means a human reviewed the source. It is not proof, model
           validation, or approval. Review alone never changes numeric

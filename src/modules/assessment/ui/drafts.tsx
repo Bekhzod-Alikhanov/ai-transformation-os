@@ -6,6 +6,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import type { Opportunity, SolutionOption } from "../types";
+import { shareTaskBaseline } from "../tasks";
 
 type DraftEntry = { value: unknown };
 type DraftStore = { entries: Map<string, DraftEntry>; changed: () => void };
@@ -36,6 +38,29 @@ export function useDrafts() {
   if (!context) throw new Error("DraftProvider is required");
   return {
     dirty: context.entries.size > 0,
+    project: (opportunity: Opportunity): Opportunity => {
+      const next = structuredClone(opportunity);
+      for (const [key, base] of context.entries) {
+        const old = opportunity.options.find((x) => key === `${x.id}:base`);
+        if (!old) continue;
+        const value = structuredClone(base.value as SolutionOption),
+          option = next.options.find((x) => x.id === old.id)!;
+        Object.assign(option, value);
+        for (const field of [
+          "annualVolume",
+          "minutesBefore",
+          "hourlyCost",
+          "productiveHours",
+          "discountRate",
+        ] as const)
+          if (value.inputs[field] !== old.inputs[field])
+            next.options.forEach((x) => {
+              x.inputs[field] = value.inputs[field];
+            });
+        shareTaskBaseline(next.options, option, old);
+      }
+      return next;
+    },
     clear: () => {
       context.entries.clear();
       context.changed();
@@ -51,6 +76,7 @@ export function useDraft<T>(key: string, saved: T) {
     value,
     dirty: context.entries.has(key),
     set: (next: T) => {
+      context.entries.delete(key);
       context.entries.set(key, { value: next });
       context.changed();
     },

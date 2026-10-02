@@ -1,108 +1,143 @@
 import { expect, test } from "@playwright/test";
-test("support case: evidence, economics, evaluation, setback, decision and current export survive reload", async ({
+test("support: reactive decision, stored replay, validation and reviewed export survive reload", async ({
   page,
 }) => {
-  await page.goto("/demo");
-  await expect(page.locator('[data-replay-ready="true"]')).toBeVisible();
-  const nav = page.getByRole("navigation", { name: "Engagement workspace" });
-  await nav.getByRole("button", { name: "Evidence", exact: true }).click();
-  await page.getByRole("button", { name: /Adoption needs validation/ }).click();
+  await page.goto("/");
+  await expect(
+    page.getByRole("heading", {
+      name: "Support Operations Copilot",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Pilot AI", exact: true }),
+  ).toBeVisible();
+  const npv = await page.getByTestId("cockpit-npv").textContent();
+  await page.getByLabel("Challenge adoption (%)").fill("10");
+  await expect(page.getByTestId("cockpit-npv")).not.toHaveText(npv!);
+  await expect(
+    page.getByText("Preferred:", { exact: false }).first(),
+  ).toContainText("Rules-based automation");
+  await page.getByRole("button", { name: "Discard challenge" }).click();
   await page
-    .getByLabel("Review rationale")
-    .fill(
-      "Use 70% as a pilot hypothesis; weekly adoption reviews will validate it.",
-    );
-  await page.getByRole("button", { name: "Accept evidence" }).click();
-  await nav.getByRole("button", { name: "Business case", exact: true }).click();
-  await page.getByLabel("Initial investment", { exact: true }).fill("40000");
-  await page.getByRole("button", { name: "Save assumptions" }).click();
+    .getByRole("button", { name: "Agent & Evaluation", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Run synthetic support replay" })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Stored evaluation · Synthetic Replay" }),
+  ).toBeVisible();
+  await page.getByText(/Please refund a transaction.*Expected label/).click();
   await expect(
     page.getByText(
-      "Assumptions saved. Prior recommendations now require reassessment.",
-    ),
-  ).toBeVisible();
-  await nav
-    .getByRole("button", { name: "Solution & evaluation", exact: true })
-    .click();
-  await page.getByRole("button", { name: "Run evaluation" }).click();
-  await expect(
-    page.getByText("Current evaluation", { exact: true }),
-  ).toBeVisible();
-  await nav
-    .getByRole("button", { name: "Outcomes & decision", exact: true })
-    .click();
-  await page.getByRole("button", { name: "Load adoption setback" }).click();
-  await page.getByRole("button", { name: "Save measurements" }).click();
-  await expect(
-    page.getByText(/Adoption is below the scale threshold/).first(),
-  ).toBeVisible();
-  await page.getByLabel("Decision", { exact: true }).selectOption("Fix");
-  await page
-    .getByLabel("Decision rationale")
-    .fill("Preserve the pilot; quality passes but adoption is only 38%.");
-  await page
-    .getByLabel("Conditions and next actions")
-    .fill(
-      "Operations lead to protect training time and review weekly adoption for 30 days.",
-    );
-  await page.getByLabel("Follow-up date").fill("2026-10-12");
-  await page
-    .getByRole("button", { name: "Record decision", exact: true })
-    .click();
-  await expect(page.getByText(/Decision recorded/)).toBeVisible();
-  await page.reload();
-  await expect(page.locator('[data-replay-ready="true"]')).toBeVisible();
-  await nav
-    .getByRole("button", { name: "Outcomes & decision", exact: true })
-    .click();
-  await expect(
-    page.getByText(
-      "Preserve the pilot; quality passes but adoption is only 38%.",
+      "Policy check blocked unsupported refund promise; human escalation",
       { exact: true },
     ),
   ).toBeVisible();
-  const briefPromise = page.waitForEvent("download");
   await page
-    .getByRole("button", { name: "Decision brief", exact: true })
+    .getByRole("button", { name: "Pilot & Recommendation", exact: true })
     .click();
-  const brief = await briefPromise;
-  const stream = await brief.createReadStream();
-  const chunks = [];
+  await page
+    .getByRole("button", { name: "Generate plan from this case" })
+    .click();
+  await page.getByRole("button", { name: "Save validation handover" }).click();
+  await page
+    .getByLabel("Recommendation outcome")
+    .selectOption("Validate through pilot");
+  await page
+    .getByLabel("Recommendation rationale")
+    .fill(
+      "Pilot the human-reviewed copilot; validate adoption and timed review before investment.",
+    );
+  await page
+    .getByLabel("Recommendation conditions")
+    .fill(
+      "Human approval and zero unsafe releases; no automatic spending approval.",
+    );
+  await page.getByLabel("Next decision date").fill("2026-12-01");
+  await page
+    .getByRole("button", { name: "Record recommendation", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", {
+      name: "Validate through pilot · Current snapshot",
+    }),
+  ).toBeVisible();
+  await page.reload();
+  await page
+    .getByRole("button", { name: "Pilot & Recommendation", exact: true })
+    .click();
+  await expect(
+    page.getByText(
+      "Pilot the human-reviewed copilot; validate adoption and timed review before investment.",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Client deliverables", exact: true })
+    .click();
+  await page.getByLabel("Export basis").selectOption({ index: 1 });
+  const downloading = page.waitForEvent("download");
+  await page
+    .getByRole("button", { name: "Download Markdown", exact: true })
+    .click();
+  const download = await downloading,
+    stream = await download.createReadStream(),
+    chunks = [];
   for await (const chunk of stream!) chunks.push(chunk);
-  const text = Buffer.concat(chunks).toString();
-  expect(text).toContain("$40,000");
-  expect(text).toContain("quality passes but adoption is only 38%");
-  const packPromise = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Export steering pack" }).click();
-  const pack = await packPromise;
-  expect(pack.suggestedFilename()).toBe("support-steering-pack.pptx");
-  expect(await pack.failure()).toBeNull();
+  const brief = Buffer.concat(chunks).toString();
+  expect(brief).toContain("Policy check blocked unsupported refund promise");
+  expect(brief).toContain("Validate through pilot");
+  expect(brief).toContain("Human-reviewed AI");
 });
-test("reporting case recalculates an imported baseline and uncertainty in a worker", async ({
+test("reporting: recommends rules and executes a real local variance pipeline", async ({
   page,
 }) => {
-  test.setTimeout(90000);
   await page.goto("/demo");
-  await expect(page.locator('[data-replay-ready="true"]')).toBeVisible();
   await page
-    .getByRole("navigation", { name: "Client engagements" })
-    .getByRole("button", { name: /Executive reporting/ })
+    .getByLabel("Engagement", { exact: true })
+    .selectOption({ label: "Executive Reporting Automation" });
+  await expect(
+    page.getByRole("heading", {
+      name: "Recommend non-AI automation",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Agent & Evaluation", exact: true })
     .click();
-  const nav = page.getByRole("navigation", { name: "Engagement workspace" });
-  await nav.getByRole("button", { name: "Evidence", exact: true }).click();
   await page
-    .getByLabel("Baseline CSV", { exact: true })
-    .fill("volume,minutes\n312,160\n312,200");
-  await page.getByRole("button", { name: "Apply baseline" }).click();
-  await nav.getByRole("button", { name: "Business case", exact: true }).click();
+    .getByLabel("Synthetic reporting CSV")
+    .fill("department,actual,budget\nSupport,120,100\nFinance,80,90");
+  await page.getByRole("button", { name: "Run local reporting rules" }).click();
   await expect(
-    page.getByLabel("Eligible annual volume", { exact: true }),
-  ).toHaveValue("624");
-  await page.getByRole("button", { name: "Run uncertainty analysis" }).click();
+    page.getByRole("heading", { name: "Stored evaluation · Local rules" }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Preview totals & variances" })
+    .click();
+  const inspector = page
+    .getByRole("complementary", { name: "Inspector" })
+    .or(page.getByRole("dialog"));
+  await expect(inspector).toContainText('"actual": 200');
+  await expect(inspector).toContainText('"variance": 10');
+  await page.getByRole("button", { name: "Close inspector" }).click();
+  await page
+    .getByLabel("Synthetic reporting CSV")
+    .fill("department,actual,budget\nSupport,unknown,100");
+  await page.getByRole("button", { name: "Run local reporting rules" }).click();
   await expect(
-    page.getByText("10,000 simulated outcomes", { exact: true }),
-  ).toBeVisible({ timeout: 60000 });
+    page.getByRole("alert").filter({ hasText: "row 2" }).first(),
+  ).toBeVisible();
+  await page.reload();
+  await page
+    .getByLabel("Engagement", { exact: true })
+    .selectOption({ label: "Executive Reporting Automation" });
+  await page
+    .getByRole("button", { name: "Agent & Evaluation", exact: true })
+    .click();
   await expect(
-    page.getByText("Cash-saving subset", { exact: false }).first(),
+    page.getByRole("heading", { name: "Stored evaluation · Local rules" }),
   ).toBeVisible();
 });

@@ -2,7 +2,9 @@
 import { describe, expect, it } from "vitest";
 import ExcelJS from "exceljs";
 import { createRequire } from "node:module";
-import { createTemplate } from "./templates";
+import { createTemplate as template } from "./templates";
+const createTemplate = (kind: "support" | "reporting") =>
+  template(kind, "legacy_aggregate");
 import {
   createEngagement,
   createOpportunity,

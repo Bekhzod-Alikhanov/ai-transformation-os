@@ -9,7 +9,9 @@ import {
   isRecommendationStale,
 } from "./model";
 import { calculateOption } from "./economics";
-import { createTemplate } from "./templates";
+import { createTemplate as template } from "./templates";
+const createTemplate = (kind: "support" | "reporting") =>
+  template(kind, "legacy_aggregate");
 import { workspaceSchema, type RecommendationInput } from "./types";
 import { createWorkspace } from "./model";
 

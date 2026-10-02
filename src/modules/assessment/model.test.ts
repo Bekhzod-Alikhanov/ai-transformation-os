@@ -7,7 +7,9 @@ import {
   reviseEngagement,
 } from "./model";
 import { workspaceSchema } from "./types";
-import { createTemplate } from "./templates";
+import { createTemplate as template } from "./templates";
+const createTemplate = (kind: "support" | "reporting") =>
+  template(kind, "legacy_aggregate");
 import { simulateOption } from "./economics";
 describe("assessment model", () => {
   it("preserves unknown inputs and independent alternatives", () => {

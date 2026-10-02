@@ -24,10 +24,18 @@ export function Inspector({
     () => false,
   );
   if (desktop)
-    return (
+    return !value || !open ? null : (
       <aside className="aw-inspector aw-panel" aria-label="Inspector">
         <p className="aw-eyebrow">Context / source / history</p>
         <h2>{value?.title ?? "Assessment inspector"}</h2>
+        <button
+          onClick={() => {
+            close();
+            returnFocus?.focus();
+          }}
+        >
+          Close inspector
+        </button>
         {value?.content ?? (
           <p>
             Select “Inspect source” or “Inspect readiness” to see the supporting

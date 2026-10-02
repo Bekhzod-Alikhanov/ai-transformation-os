@@ -1,4 +1,5 @@
 import Decimal from "decimal.js";
+import { taskEffort } from "./tasks";
 import {
   scenarioSchema,
   solutionOptionSchema,
@@ -40,6 +41,9 @@ export type FinancialResult = {
   maximumViableInvestment: number | null;
   breakEvenAdoption: number | null;
   monthly: MonthlyFlow[];
+  baselineHumanHours?: number | null;
+  futureHumanHours?: number | null;
+  subsequentInvestment?: number | null;
 };
 class FinancialRangeError extends Error {
   constructor() {
@@ -102,12 +106,31 @@ function validate(
       candidate.inputs.reviewMinutes !== null &&
       candidate.inputs.minutesBefore !== null &&
       candidate.inputs.reduction !== null &&
+      !candidate.taskPlan &&
       candidate.inputs.reviewMinutes >
         candidate.inputs.minutesBefore * candidate.inputs.reduction
     )
       issues.push(
         `${candidate.name}: Additional review effort exceeds gross time savings; move the excess effort into an explicit incremental review cost and document allocation`,
       );
+    if (candidate.taskPlan) {
+      const effort = taskEffort(
+        candidate.taskPlan.rows,
+        candidate.inputs.adoption,
+      );
+      issues.push(...effort.issues);
+      const baseline = new Decimal(candidate.inputs.annualVolume ?? 0)
+        .times(candidate.inputs.minutesBefore ?? 0)
+        .div(60)
+        .toNumber();
+      if (
+        effort.baselineHours !== null &&
+        Math.abs(effort.baselineHours - baseline) > 0.01
+      )
+        issues.push(
+          `${candidate.name}: task baseline must match shared annual volume × baseline minutes`,
+        );
+    }
     if (
       (candidate.inputs.cashShare ?? 0) > 0 &&
       !candidate.cashMechanism.trim()
@@ -183,15 +206,27 @@ function incomplete(issues: string[], overlap = false): FinancialResult {
 }
 function annual(option: SolutionOption) {
   const i = option.inputs as Known;
-  const hours = new Decimal(i.annualVolume)
-    .times(
-      Decimal.max(
-        0,
-        new Decimal(i.minutesBefore).times(i.reduction).minus(i.reviewMinutes),
-      ),
-    )
-    .div(60)
-    .times(i.adoption);
+  const hours = option.taskPlan
+    ? new Decimal(
+        taskEffort(
+          option.taskPlan.rows,
+          i.adoption,
+          option.taskPlan.referenceReduction
+            ? i.reduction / option.taskPlan.referenceReduction
+            : 1,
+        ).releasedHours!,
+      )
+    : new Decimal(i.annualVolume)
+        .times(
+          Decimal.max(
+            0,
+            new Decimal(i.minutesBefore)
+              .times(i.reduction)
+              .minus(i.reviewMinutes),
+          ),
+        )
+        .div(60)
+        .times(i.adoption);
   const labour = hours.times(i.hourlyCost).times(i.realisation);
   let economic = labour,
     cash = labour.times(i.cashShare);
@@ -341,6 +376,23 @@ function core(
     maximumViableInvestment: money(npv.plus(investment)),
     breakEvenAdoption: null,
     monthly,
+    baselineHumanHours: money(
+      new Decimal(i.annualVolume).times(i.minutesBefore).div(60),
+    ),
+    futureHumanHours: money(
+      new Decimal(i.annualVolume).times(i.minutesBefore).div(60).minus(a.hours),
+    ),
+    subsequentInvestment: money(
+      option.costs
+        .filter((c) => c.frequency === "one_time" && c.startMonth > 0)
+        .reduce((s, c) => s.plus(c.amount!), new Decimal(0))
+        .times(costMultiplier)
+        .minus(
+          bau.costs
+            .filter((c) => c.frequency === "one_time" && c.startMonth > 0)
+            .reduce((s, c) => s.plus(c.amount!), new Decimal(0)),
+        ),
+    ),
   };
 }
 export function calculateOption(
@@ -479,8 +531,9 @@ export function simulateOption(
     )
       throw new Error(`Invalid triangular range: ${key}`);
   if (
+    !option.taskPlan &&
     option.inputs.reviewMinutes! >
-    option.inputs.minutesBefore! * bounds.reduction.min
+      option.inputs.minutesBefore! * bounds.reduction.min
   )
     throw new Error(
       "Simulation range includes additional review effort; cost and allocate the excess effort before simulation",
@@ -543,7 +596,7 @@ export function simulateOption(
       ].count++,
   );
   return {
-    modelVersion: "assessment-v2.1",
+    modelVersion: option.taskPlan ? "assessment-v3.0" : "assessment-v2.1",
     seed,
     inputRevision: ranges.inputRevision,
     ranges: structuredClone(bounds),

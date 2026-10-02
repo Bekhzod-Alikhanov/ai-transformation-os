@@ -7,7 +7,13 @@ import type {
 } from "../types";
 
 export type Section =
-  "brief" | "evidence" | "options" | "recommendation" | "deliverables";
+  | "overview"
+  | "brief"
+  | "evidence"
+  | "options"
+  | "evaluation"
+  | "recommendation"
+  | "deliverables";
 
 /** Task 4 boundary. Snapshot exports must derive solely from the captured record;
  * draft exports explicitly label the saved current base as unreviewed. */

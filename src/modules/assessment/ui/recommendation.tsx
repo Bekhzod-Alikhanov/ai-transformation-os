@@ -8,6 +8,7 @@ import { Field, Select, ErrorMessage, errorText } from "./fields";
 import { ReadinessControls } from "./readiness";
 import { Validation } from "./validation";
 import { formatMetric } from "./financial-results";
+import { compareInvestment } from "../decision";
 export function Recommendation(props: SurfaceProps) {
   if (!props.opportunity)
     return (
@@ -35,6 +36,7 @@ function RecommendationContent(props: SurfaceProps) {
   const option = o.options.find((x) => x.id === o.selectedOptionId)!,
     bau = o.options.find((x) => x.kind === "bau")!,
     result = calculateOption(option, bau);
+  const comparison = compareInvestment(props.engagement, o);
   return (
     <div className="aw-stack">
       <div>
@@ -45,6 +47,13 @@ function RecommendationContent(props: SurfaceProps) {
         </p>
       </div>
       <ReadinessControls {...props} />
+      <section className="aw-panel">
+        <h2>Calculated advice · separate from Beck’s decision</h2>
+        <p>
+          <strong>{comparison.outcome}</strong> · {comparison.preferredName}
+        </p>
+        <p>{comparison.reasons.join(" ")}</p>
+      </section>
       <section className="aw-panel aw-stack">
         <h2>Recommendation composer</h2>
         <p className="aw-callout">

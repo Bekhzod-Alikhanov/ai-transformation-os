@@ -6,7 +6,9 @@ import { Comparison } from "./financial-results";
 import { Scenarios } from "./scenarios";
 import { Simulation } from "./simulation";
 import { ErrorMessage, errorText } from "./fields";
+import { useDrafts } from "./drafts";
 export function Options(props: SurfaceProps) {
+  const drafts = useDrafts();
   const [selected, setSelected] = useState(""),
     [error, setError] = useState("");
   const o = props.opportunity;
@@ -78,6 +80,15 @@ export function Options(props: SurfaceProps) {
         </button>
       )}
       <ErrorMessage error={error} />
+      <Comparison
+        opportunity={drafts.project(o)}
+        currency={props.engagement.currency}
+        inspect={props.inspect}
+      />
+      <p className="aw-muted">
+        Comparison above includes retained working drafts. Save a revision
+        before recording a recommendation or exporting.
+      </p>
       <div id="base-assumptions">
         <OptionEditor key={option.id} option={option} {...props} />
       </div>
@@ -85,11 +96,6 @@ export function Options(props: SurfaceProps) {
         key={`${option.id}:${props.recordId ?? ""}`}
         option={option}
         {...props}
-      />
-      <Comparison
-        opportunity={o}
-        currency={props.engagement.currency}
-        inspect={props.inspect}
       />
       <Scenarios
         key={`${option.id}:${o.revision}`}

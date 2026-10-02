@@ -1,25 +1,35 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-test("review and decision surfaces have no WCAG A/AA automated violations", async ({
+test("connected decision surfaces have no automated WCAG A/AA violations or page overflow", async ({
   page,
 }) => {
   test.setTimeout(120000);
   await page.goto("/demo");
-  await expect(page.locator('[data-replay-ready="true"]')).toBeVisible();
-  const nav = page.getByRole("navigation", { name: "Engagement workspace" });
+  await expect(
+    page.getByRole("heading", {
+      name: "Support Operations Copilot",
+      exact: true,
+    }),
+  ).toBeVisible();
   for (const name of [
-    "Engagement brief",
-    "Evidence",
-    "Business case",
-    "Solution & evaluation",
-    "Delivery plan",
-    "Outcomes & decision",
+    "Decision Overview",
+    "Process & Evidence",
+    "Investment Comparison",
+    "Agent & Evaluation",
+    "Pilot & Recommendation",
   ]) {
-    await nav.getByRole("button", { name, exact: true }).click();
-    const results = await new AxeBuilder({ page })
-      .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
-      .analyze();
-    expect(results.violations, name).toEqual([]);
+    await page
+      .getByRole("navigation", { name: "Assessment sections" })
+      .getByRole("button", { name, exact: true })
+      .click();
+    expect(
+      (
+        await new AxeBuilder({ page })
+          .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+          .analyze()
+      ).violations,
+      name,
+    ).toEqual([]);
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= window.innerWidth,
@@ -27,11 +37,16 @@ test("review and decision surfaces have no WCAG A/AA automated violations", asyn
       name,
     ).toBe(true);
   }
-  await page.getByRole("button", { name: "Reset demo", exact: true }).focus();
+  await page
+    .getByRole("button", { name: "Decision Overview", exact: true })
+    .click();
+  await page.getByRole("button", { name: /Annual hours released/ }).focus();
   await page.keyboard.press("Enter");
-  await expect(page.getByRole("dialog")).toBeVisible();
-  await page.keyboard.press("Escape");
   await expect(
-    page.getByRole("button", { name: "Reset demo", exact: true }),
+    page.getByRole("heading", { name: "Annual hours released", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Close inspector" }).click();
+  await expect(
+    page.getByRole("button", { name: /Annual hours released/ }),
   ).toBeFocused();
 });

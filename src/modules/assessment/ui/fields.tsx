@@ -17,6 +17,7 @@ export function Field({
   const id = useId();
   const props = {
     id,
+    "aria-labelledby": `${id}-label`,
     value:
       typeof value === "number" && !Number.isFinite(value) ? "" : (value ?? ""),
     required,
@@ -26,7 +27,7 @@ export function Field({
   };
   return (
     <label className="aw-field" htmlFor={id}>
-      <span>{label}</span>
+      <span id={`${id}-label`}>{label}</span>
       {multiline ? (
         <textarea {...props} rows={3} />
       ) : (
@@ -51,10 +52,15 @@ export function Select({
   onChange: (value: string) => void;
   children: ReactNode;
 }) {
+  const id = useId();
   return (
     <label className="aw-field">
-      <span>{label}</span>
-      <select value={value} onChange={(e) => onChange(e.target.value)}>
+      <span id={id}>{label}</span>
+      <select
+        aria-labelledby={id}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
         {children}
       </select>
     </label>

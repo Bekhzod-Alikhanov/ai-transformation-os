@@ -1,9 +1,14 @@
 import { materialFields } from "./assessment";
 import { createEngagement, createOpportunity, newId } from "./model";
-import type { Engagement, Evidence } from "./types";
+import type { Engagement, Evidence, TaskRow } from "./types";
+import { taskEffort } from "./tasks";
+import { reportingEvaluation, reportingFixture } from "./evaluation";
 
 /** Synthetic training examples. No evidence claims measurement or live model calls. */
-export function createTemplate(kind: "support" | "reporting"): Engagement {
+export function createTemplate(
+  kind: "support" | "reporting",
+  model: "connected" | "legacy_aggregate" = "connected",
+): Engagement {
   const support = kind === "support";
   const engagement = createEngagement(
     support ? "Support operations assessment" : "Monthly reporting assessment",
@@ -202,5 +207,278 @@ export function createTemplate(kind: "support" | "reporting"): Engagement {
     stopCriteria:
       "Stop on critical control breach, material quality degradation or budget overrun.",
   };
+  if (model === "legacy_aggregate") return engagement;
+  // Both examples use the same task and option services as a blank assessment.
+  engagement.name = support
+    ? "Support Operations Copilot"
+    : "Executive Reporting Automation";
+  engagement.client = "Aster Financial Group · synthetic";
+  engagement.lead = "Beck";
+  engagement.sponsor = support
+    ? "Operations sponsor (synthetic)"
+    : "Finance sponsor (synthetic)";
+  o.name = support
+    ? "Support triage & response preparation"
+    : "Reporting reconciliation & pack preparation";
+  o.evidence[1].title = "Pilot validation still required";
+  o.evidence[1].status = "pending";
+  o.evidence[1].excerpt =
+    "Synthetic projections are illustrative. Adoption, human review time and real-world quality still need validation.";
+  o.selectedOptionId = o.options[support ? 2 : 1].id;
+  o.adoption = "ready";
+  o.decisionPolicy = {
+    objective: "economic",
+    paybackCeiling: 24,
+    npvHurdle: 0,
+  };
+  o.questions = [
+    [
+      "workload",
+      "What volume and handling time were measured?",
+      notes.workload,
+    ],
+    [
+      "variation",
+      "Which tasks need judgment rather than rules?",
+      support
+        ? "Response preparation varies by ticket; routing has deterministic rules."
+        : "Structured consolidation and reconciliation can use rules.",
+    ],
+    [
+      "data",
+      "Which sources can support an answer?",
+      "Synthetic source policies and workload sketch; no client data.",
+    ],
+    [
+      "quality",
+      "What happens when a proposed output is wrong?",
+      "Human reviewer corrects or escalates before use.",
+    ],
+    [
+      "controls",
+      "Who approves outputs and exceptions?",
+      "Process owner; approval remains human.",
+    ],
+    [
+      "adoption",
+      "How much review time will users actually need?",
+      support
+        ? "Timed pilot needed before investment."
+        : "Structured rules outputs use a reconciliation checklist.",
+    ],
+    [
+      "value",
+      "How will released hours become useful work or cash?",
+      support
+        ? "Validate contractor renewal avoidance; remaining capacity is not cash."
+        : "Capacity redirected to analysis; no cash saving claimed.",
+    ],
+  ].map(([area, question, answer]) => ({
+    id: newId(),
+    area: area as NonNullable<typeof o.questions>[number]["area"],
+    question,
+    answer,
+    owner: "Process owner",
+    evidenceIds: [o.evidence[0].id],
+    unresolved: support && area === "adoption",
+  }));
+  const activities = support
+    ? ["Triage", "Prepare response", "Approve response"]
+    : ["Collect and reconcile", "Prepare narrative", "Approve pack"];
+  const current = support ? [2, 8, 2] : [60, 20, 10];
+  const taskKeys = activities.map(() => newId());
+  o.assumptions = [];
+  o.options.forEach((option, index) => {
+    option.name = [
+      "Manual / business as usual",
+      "Rules-based automation",
+      "Human-reviewed AI",
+      "Broader AI automation",
+    ][index];
+    option.inputs.adoption = index === 0 ? 1 : 0.85;
+    option.inputs.reduction = index === 0 ? 0 : 0.5;
+    option.inputs.reviewMinutes = 0; // Review is captured at task level, not counted twice.
+    option.readiness = {
+      data: "ready",
+      technical: "ready",
+      controlsOpen: false,
+      validationRequired: support && index >= 2,
+      ...(index === 0 || (support && index === 1)
+        ? {}
+        : {
+            evaluationDataset: support
+              ? ("support-fixtures-v1" as const)
+              : index === 1
+                ? ("reporting-rules-v1" as const)
+                : ("reporting-narrative-fixtures-v1" as const),
+          }),
+    };
+    const remaining = support
+      ? [
+          [2, 8, 2],
+          [0.3, 6, 2],
+          [0.2, 1.5, 1.5],
+          [0.2, 1.2, 1],
+        ]
+      : [
+          [60, 20, 10],
+          [5, 20, 10],
+          [8, 5, 10],
+          [5, 4, 10],
+        ];
+    const eligible = support
+      ? [
+          [0, 0, 0],
+          [0.9, 0.2, 0],
+          [0.95, 0.85, 1],
+          [0.98, 0.9, 1],
+        ]
+      : [
+          [0, 0, 0],
+          [1, 0, 0],
+          [1, 0.8, 0],
+          [1, 0.9, 0],
+        ];
+    const review = support
+      ? [
+          [0, 0, 0],
+          [0.1, 0.3, 0],
+          [0.1, 0.8, 0.5],
+          [0.5, 2, 1.5],
+        ]
+      : [
+          [0, 0, 0],
+          [3, 0, 0],
+          [12, 8, 0],
+          [18, 10, 0],
+        ];
+    const rows: TaskRow[] = activities.map((name, k) => ({
+      id: newId(),
+      name,
+      baselineKey: taskKeys[k],
+      annualVolume: option.inputs.annualVolume,
+      currentMinutes: current[k],
+      eligible: eligible[index][k],
+      responsibility:
+        index === 0 || eligible[index][k] === 0
+          ? "human"
+          : index === 1
+            ? "automation"
+            : "agent",
+      remainingMinutes: remaining[index][k],
+      reviewMinutes: review[index][k],
+      exceptionRate: index === 0 ? 0 : 0.1,
+      exceptionMinutes: eligible[index][k] ? (support ? 4 : 5) : 0,
+      evidenceIds: [o.evidence[0].id],
+      assumed: true,
+    }));
+    option.taskPlan = { rows, referenceReduction: index === 0 ? 0 : 0.5 };
+    const implementation = support
+      ? [0, 12000, 45000, 100000]
+      : [0, 15000, 70000, 110000];
+    const run = support ? [1000, 1600, 3000, 4500] : [1000, 1500, 3800, 5000];
+    const setup = option.costs[0],
+      recurring = option.costs[1];
+    option.costs = [
+      ...(
+        [
+          ["Discovery and design", "discovery", 0.2],
+          ["Data preparation and integration", "data", 0.2],
+          ["Implementation and testing", "implementation", 0.5],
+          ["Training and change management", "change", 0.1],
+        ] as const
+      ).map(([name, category, share], i) => ({
+        ...setup,
+        id: i === 0 ? setup.id : newId(),
+        name,
+        category,
+        amount: implementation[index] * share,
+      })),
+      ...(
+        [
+          ["Infrastructure and software", "technology", 0.35],
+          [
+            index > 1 ? "Model usage allowance" : "Rules runtime and tooling",
+            "technology",
+            0.2,
+          ],
+          ["Monitoring and support", "operations", 0.35],
+          ["Ongoing training", "change", 0.1],
+        ] as const
+      ).map(([name, category, share], i) => ({
+        ...recurring,
+        id: i === 0 ? recurring.id : newId(),
+        name,
+        category,
+        amount: run[index] * share,
+      })),
+    ];
+    option.scenarios = [
+      {
+        id: newId(),
+        name: "Conservative",
+        inputPatch: { adoption: index === 0 ? 1 : 0.45 },
+        costMultiplier: 1.2,
+        benefitMultiplier: 1,
+      },
+      {
+        id: newId(),
+        name: "Base",
+        inputPatch: {},
+        costMultiplier: 1,
+        benefitMultiplier: 1,
+      },
+      {
+        id: newId(),
+        name: "Upside",
+        inputPatch: { adoption: index === 0 ? 1 : 0.95 },
+        costMultiplier: 0.9,
+        benefitMultiplier: 1,
+      },
+    ];
+    for (const field of materialFields(option))
+      o.assumptions.push({
+        id: newId(),
+        optionId: option.id,
+        field: field.field,
+        value: field.value,
+        unit: "model units",
+        provenance: "assumed",
+        confidence: "medium",
+        evidenceIds: [o.evidence[0].id],
+        owner: "Process owner",
+        version: 1,
+        at: "2026-10-01T12:00:00.000Z",
+        material: true,
+      });
+  });
+  const baseline = taskEffort(o.options[0].taskPlan!.rows, 1).baselineHours!;
+  if (!support)
+    o.evaluations = [
+      reportingEvaluation(o.options[1].id, o.revision, reportingFixture),
+    ];
+  o.evidence[0].excerpt = `Synthetic baseline: ${o.options[0].inputs.annualVolume} items/year; activities ${activities.map((x, i) => `${x}: ${current[i]} minutes`).join(", ")}; ${baseline} annual human hours. Loaded cost ${o.options[0].inputs.hourlyCost}/hour. Synthetic scenario/cost assumptions accepted only for demonstration, not measured client evidence.`;
+  o.validation.baseline = `${baseline} annual human hours; validate with a representative timed sample.`;
+  o.requests.push(
+    {
+      id: newId(),
+      question:
+        "How much human review and exception handling is needed per task?",
+      owner: "Process owner",
+      impact: "Extra human effort reduces released hours and NPV",
+      status: "open",
+    },
+    {
+      id: newId(),
+      question: support
+        ? "Can contractor renewal actually be avoided?"
+        : "Where will released capacity be redeployed?",
+      owner: "Finance sponsor",
+      impact: support
+        ? "Cash-only returns may differ materially from economic value"
+        : "Capacity value is useful work, not cash savings",
+      status: "open",
+    },
+  );
   return engagement;
 }

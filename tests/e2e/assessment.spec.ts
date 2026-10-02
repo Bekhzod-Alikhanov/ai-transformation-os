@@ -96,7 +96,7 @@ test("malformed historical snapshot restore retains the healthy saved revision a
     .getByRole("button", { name: engagement.name, exact: true })
     .click();
   await page
-    .getByRole("button", { name: "Recommendation", exact: true })
+    .getByRole("button", { name: "Pilot & Recommendation", exact: true })
     .click();
   await expect(
     page.getByRole("heading", { name: "Immutable recommendation history" }),
@@ -128,7 +128,9 @@ test("blank engagement to imported and reviewed evidence persists in native Inde
     .getByRole("button", { name: "Add opportunity", exact: true })
     .click();
   await page.getByLabel("Client").fill("LOCAL-CONTENT-SENTINEL");
-  await page.getByRole("button", { name: "Evidence", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Process & Evidence", exact: true })
+    .click();
   await page.getByLabel("Baseline file").setInputFiles({
     name: "baseline.csv",
     mimeType: "text/csv",
@@ -155,7 +157,9 @@ test("blank engagement to imported and reviewed evidence persists in native Inde
   await expect(
     page.getByText("Review status: accepted", { exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Brief", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Edit engagement brief", exact: true })
+    .click();
   await expect(page.getByLabel("Client")).toHaveValue("LOCAL-CONTENT-SENTINEL");
   await page.getByRole("button", { name: "Save brief", exact: true }).click();
   const record = await stored(page);
@@ -184,9 +188,9 @@ test("implemented surfaces are accessible, responsive and inspector returns keyb
 }, info) => {
   await page.goto("/workbench");
   await page.getByRole("button", { name: "Use support template" }).click();
-  for (const name of ["Brief", "Evidence"]) {
+  for (const name of ["Edit engagement brief", "Process & Evidence"]) {
     await page.getByRole("button", { name, exact: true }).click();
-    if (name === "Brief") {
+    if (name === "Edit engagement brief") {
       const dimensions = await page
         .getByRole("region", { name: "Process steps", exact: true })
         .locator("tbody tr")
@@ -199,7 +203,9 @@ test("implemented surfaces are accessible, responsive and inspector returns keyb
       expect(dimensions.rowHeight).toBeLessThan(120);
     }
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-      name === "Brief" ? "Engagement brief" : "Evidence review",
+      name === "Edit engagement brief"
+        ? "Engagement brief"
+        : "Process & Evidence",
     );
     expect(
       (
@@ -269,7 +275,9 @@ test("inspector snapshots clear after successful edits and reviews", async ({
   await page.getByRole("button", { name: "Inspect readiness" }).click();
   await expect(inspector()).toContainText("Updated engagement brief");
   await closeDrawer();
-  await page.getByRole("button", { name: "Evidence", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Process & Evidence", exact: true })
+    .click();
   await page.getByRole("button", { name: "Inspect source" }).click();
   await expect(inspector()).toContainText("Status: accepted · version 1");
   await closeDrawer();
@@ -314,7 +322,7 @@ test("template and duplicate creation preserve unrelated engagement name drafts"
   for (const action of [
     "Use support template",
     "Use reporting template",
-    "Duplicate Support operations assessment",
+    "Duplicate Support Operations Copilot",
   ]) {
     await page.getByRole("button", { name: action, exact: true }).click();
     await expect(page.getByRole("status")).toContainText("Saved");
@@ -362,7 +370,7 @@ test("templates, independent selection, process drafts, archive and validated ba
   await page.getByRole("button", { name: "Work queue", exact: true }).click();
   await page.getByRole("button", { name: "Use reporting template" }).click();
   await expect(page.getByLabel("Client", { exact: true })).toHaveValue(
-    "Synthetic example — Beck",
+    "Aster Financial Group · synthetic",
   );
   await page
     .getByRole("combobox", { name: "Engagement", exact: true })
@@ -370,6 +378,9 @@ test("templates, independent selection, process drafts, archive and validated ba
   await expect(
     page.getByRole("combobox", { name: "Opportunity", exact: true }),
   ).toHaveValue((await stored(page)).engagements[0].opportunities[1].id);
+  await page
+    .getByRole("button", { name: "Edit engagement brief", exact: true })
+    .click();
   await expect(page.getByLabel("Process discovery notes")).toHaveValue(
     "UNSAVED-PROCESS-DRAFT",
   );
@@ -379,25 +390,25 @@ test("templates, independent selection, process drafts, archive and validated ba
   await page.getByRole("button", { name: "Work queue", exact: true }).click();
   await page
     .getByRole("button", {
-      name: "Archive Support operations assessment",
+      name: "Archive Support Operations Copilot",
       exact: true,
     })
     .click();
   await page.getByLabel("Show archived").check();
   await page
     .getByRole("button", {
-      name: "Restore Support operations assessment",
+      name: "Restore Support Operations Copilot",
       exact: true,
     })
     .click();
   await page
     .getByRole("button", {
-      name: "Duplicate Support operations assessment",
+      name: "Duplicate Support Operations Copilot",
       exact: true,
     })
     .click();
   await expect(page.getByLabel("Engagement name", { exact: true })).toHaveValue(
-    "Support operations assessment (copy)",
+    "Support Operations Copilot (copy)",
   );
   await page.getByText("Workspace backup / restore", { exact: true }).click();
   const backup = page.waitForEvent("download");
@@ -626,7 +637,9 @@ test("manual source edits reset review and preserve escaped notes without changi
 }) => {
   await page.goto("/workbench");
   await page.getByRole("button", { name: "Use support template" }).click();
-  await page.getByRole("button", { name: "Evidence", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Process & Evidence", exact: true })
+    .click();
   await page.getByRole("button", { name: "Add manual evidence" }).click();
   await page.getByLabel("Evidence title").fill("Synthetic timing source");
   await page.getByLabel("Source", { exact: true }).fill("Workshop");
@@ -699,7 +712,9 @@ test("XLSX sheet mapping preserves sparse rows and rejects invalid previews", as
   good.getRow(4).values = [30, 240];
   await page.goto("/workbench");
   await page.getByRole("button", { name: "Use reporting template" }).click();
-  await page.getByRole("button", { name: "Evidence", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Process & Evidence", exact: true })
+    .click();
   await page.getByLabel("Baseline file").setInputFiles({
     name: "synthetic.xlsx",
     mimeType:

@@ -1,140 +1,49 @@
-# Architecture
+# Architecture — connected investment demonstrator
 
-## Consulting assessment workspace
+## One active application
 
-`/workbench` is intentionally public and renders `src/modules/assessment/workbench.tsx` as a browser-local, synthetic-only client workspace, bypassing legacy authentication and provider context. Its five sections are Brief, Evidence, Options & Value, Recommendation and Deliverables. It does not reuse or overwrite the `/demo` record, which has a separate signed synthetic entry. The assessment workspace provides no hosted storage or confidentiality guarantee.
-
-Version 2 schemas validate engagements, opportunities, source reviews, assumptions, alternatives, scenarios, simulations and recommendation snapshots. `repository.ts` stores the workspace in IndexedDB (`beck-assessment-workbench`, `workspace`, `active`) with atomic optimistic revision checks. A save is successful only after transaction completion. Full JSON backups include internal notes and historical/legacy data. Restore previews validation before explicit replacement, while stale/unsupported/corrupt data is preserved with recovery guidance. Optional legacy migration copies supported records into version 2; original demo data remains intact and missing inputs remain unknown. No automatic schema upgrade rewrites unknown versions.
-
-`economics.ts` is the single calculation engine: all alternatives are independently incremental to the captured BAU, over months 0–36. It separates annual capacity from cash subsets, first-year ROI from 36-month NPV, sustained monthly payback and unknown values from zero. Decimal arithmetic and finite-result guards reject unusable values. What-if scenarios and seeded worker simulations remain separate from the saved base used by policy and recommendation snapshots. Evidence reviews link through versioned assumption provenance and never silently mutate input numbers.
-
-`exports.ts` is the public facade over focused payload, brief, workbook and slide modules. `prepareExport(engagement, opportunityId, brand, options)` resolves a saved draft or exact recommendation snapshot. The typed selection boundary is in `ui/surface.ts`. Its allowlisted projection excludes raw histories, unknown legacy objects and nested internal notes unless explicitly opted in. That same prepared payload drives the actual preview and all three formats. Snapshot-contained facts/economics never mix with current data; only the current opportunity revision is added for staleness context. Workspace branding is an explicit current rendering input because historical snapshots do not capture branding.
-
-ExcelJS and PptxGenJS load dynamically at export time in the browser. The workbook has Overview, Options, Assumptions, Evidence, Costs, Benefits, Monthly flows, Validation and Methods, with numeric cells, literal text and no formulas, macros or external references. Text beyond Excel's cell limit continues in visible rows. The editable wide steering pack has exactly eight slides with bounded text, native tables and a native cumulative-net chart for complete cases. Overflow references point to the full workbook. Incomplete economics are draft/Not assessed while reviewed recommendation history keeps its original outcome. Blob downloads never upload entered content; recovery backup and client deliverables are deliberately different contracts.
-
-The frontend follows the existing warm workbench layout, accessible labels and responsive navigation. Export tests exercise real archive contents and ExcelJS roundtrips; browser journeys check saved versus unsaved values, downloads, snapshot selection, note exclusion, accessibility and no transmission of entered content. These checks do not imply native PowerPoint certification, a manual screen-reader audit or human practitioner validation. Follow the [existing practitioner protocol](assessment-practitioner-validation.md), currently **not conducted**, before making claims about assessment quality or time saved. The full application release gate is owned by final integration.
-
-## Current interview release: two browser-local engagements
-
-`/demo` renders `delivery-workbench/workbench.tsx` through a compatibility wrapper. Exactly two engagements are served: Support Operations Copilot and Executive Reporting Automation. Beck is the demonstration lead. Neither case represents a real client engagement or a Sia product.
-
-The server only establishes the existing signed synthetic session. Source review, CSV parsing, calculation, fixture evaluation, delivery tracking, measurement and decisions run locally. The validated `beck-delivery-workbench:v1` browser record survives session renewal. It is not tenant storage and is not suitable for confidential material. Storage failures leave the previous record unchanged; corrupt records are preserved for backup and explicit recovery. Restore/reset affects only this key; legacy replay data is untouched.
-
-Financial inputs have one deterministic Decimal.js path, including monthly ramp, investment, OPEX, economic and cash-only NPV. Sensitivity and scenarios call the same engine. A Web Worker runs 10,000 seeded triangular samples; displayed summaries are temporary and labeled by revision. Simulation is not a production background job. Fixture accuracy is calculated against inspectable expected labels, not presented as measured model quality. Hard gates prohibit scale without evidence, evaluation, positive economics, quality, adoption and human controls.
-
-Decisions capture append-only snapshots of inputs, evidence and measurements. Subsequent changes retain the old snapshot and mark it stale. Local history is not tamper-proof: a browser owner can edit or restore it. Markdown and editable PowerPoint exports use the current project record, not the legacy Aster catalogue.
+Next.js App Router renders the same `src/modules/assessment/workbench.tsx` on `/`, `/demo` and `/workbench`. Proxy headers bypass the legacy shell. Demo and workbench differ in persistence namespace/initial records, not capabilities. Legacy enterprise routes redirect to the demo in provider-free mode; their modules are not active product surfaces.
 
 ```mermaid
-flowchart LR
-  CSV[Local CSV / workshop notes] --> E[Reviewed evidence]
-  E --> C[Versioned case inputs]
-  C --> F[Decimal financial engine]
-  C --> W[Seeded simulation worker]
-  E --> V[Inspectable fixture evaluation]
-  F --> G[Deterministic decision gates]
-  V --> G
-  P[Pilot measurements / delivery risks] --> G
-  G --> D[Beck's decision + snapshot]
-  D --> S[Validated browser record]
-  S --> X[Current brief / editable steering pack]
+flowchart TD
+  Root[Public / and /demo] --> UI[Assessment workbench / five connected sections]
+  Personal[/workbench] --> UI
+  UI --> Repo[Transactional IndexedDB repository]
+  Repo --> Demo[beck-investment-demo / two resettable examples]
+  Repo --> Saved[beck-assessment-workbench / saved synthetic assessments]
+  UI --> Drafts[Retained editor and option drafts]
+  Drafts --> Calc[Canonical Decimal.js economics]
+  Repo --> Calc
+  Calc --> Rules[Option comparison and readiness gates]
+  Rules --> Snapshot[Human recommendation snapshot]
+  Snapshot --> Payload[Allowlisted export payload]
+  Payload --> Files[Markdown / eight-slide PPTX / XLSX]
 ```
 
-## Future production topology — not provisioned or accepted in this release
+## Versioned contracts and storage
 
-The platform is a modular monolith: one deployable Next.js application with strict domain boundaries and durable background execution. Postgres is the system of record; JSONB is limited to versioned schemas, immutable payload snapshots, structured model output, and connector metadata.
+Zod version 3 contracts add tasks, workshop questions, per-option suitability, decision policies and evaluation runs/events. Optional fields preserve aggregate records. Valid version 2 records upgrade through an in-memory validated copy; the first successful v3 transaction retains the raw original. Invalid versions never overwrite data. Transaction completion confirms a save; optimistic revisions reject stale-tab writes.
 
-```mermaid
-flowchart LR
-  U[Executive / analyst / approver] --> V[Vercel · Next.js App Router]
-  V --> S[Supabase Auth + RLS Postgres]
-  V --> B[Private Supabase Storage]
-  V --> I[Inngest Cloud]
-  I --> S
-  I --> O[OpenAI Responses API]
-  I --> G[Google Workspace APIs]
-  GP[Google Pub/Sub] --> V
-  GC[Calendar push channels] --> V
-  S -. Realtime .-> V
-  V -. optional OTLP .-> T[Telemetry collector]
-```
+Legacy localStorage migration is explicit and retains its original. Backup restore validates before confirmation. Corrupt records are recoverable. Recovery backups include internal notes/history; client exports exclude internal notes by default. Browser storage is not confidential, encrypted or a multi-user audit guarantee.
 
-## Domain boundaries
+## Calculations and decisions
 
-```mermaid
-flowchart TB
-  Evidence[Evidence + ingestion] --> Opportunity[Opportunity mining]
-  Opportunity --> Portfolio[Portfolio scoring]
-  Evidence --> Workflow[Current / future workflow twin]
-  Portfolio --> Economics[Financial + simulation engines]
-  Workflow --> Committee[Specialist committee]
-  Economics --> Committee
-  Evidence --> Committee
-  Committee --> Decision[Policy-constrained decision]
-  Decision --> Blueprint[Agent blueprint + autonomy policy]
-  Blueprint --> Pilot[90-day pilot]
-  Pilot --> Value[Measurements + realised value]
-  Value --> Steering[Briefs + steering packs]
-  Decision --> Approval[Immutable approval revision]
-  Approval --> Connector[Exact external execution]
-```
+`tasks.ts` models current work versus unused/ineligible work, assisted handling, review and exceptions. Negative released hours are retained. Shared baseline edits propagate to task-mode alternatives, preserving option-specific effort and adoption. Aggregate cases remain aggregate until explicitly converted.
 
-Deterministic services own arithmetic, scoring, classifications, consensus, policy gates, scenario application, and value recommendations. Agents extract, interpret, challenge, redesign, and draft; they do not replace deterministic calculation or the human decision.
+`economics.ts` is the single financial authority: Decimal arithmetic, finite guards, capacity/cash separation, overlap checks, cost timing, 36 monthly incremental flows against BAU and sustained payback. Month-zero investment is the first-year ROI denominator; later investment remains in net flows. Seeded simulations store 10,000-draw summaries, histogram, signature and model version, not raw samples. No tax/FX/legal capitalization judgment is performed.
 
-## Evidence ingestion
+`decision.ts` ranks complete options by selected economic/cash NPV after budget, payback, suitability and control gates. Exact ties favour lower complexity. Missing material facts require investigation, unresolved AI value requires a pilot, and non-AI can win. `assessment.ts` and `model.recordRecommendation` enforce evidence, readiness and evaluation gates on separate human recommendations. Strategic exceptions retain adverse economics.
 
-```mermaid
-sequenceDiagram
-  participant User
-  participant API as Upload API
-  participant Parser as Isolated parser
-  participant Job as Inngest
-  participant Miner as Opportunity Miner
-  participant DB as Evidence ledger
-  User->>API: PDF / DOCX / XLSX / CSV / TXT / MD
-  API->>Parser: bytes + file name
-  Parser-->>API: items + page/sheet/row/line locators
-  alt low-text PDF
-    Parser-->>API: requiresOcr = true
-  else usable text
-    API->>Job: signed organisation event
-    Job->>Miner: untrusted data, no action tools
-    Miner-->>Job: Zod-constrained draft + evidence refs
-    Job->>DB: organisation-scoped records
-  end
-```
+## Evidence, replay and handover
 
-## Approval execution
+Manual excerpts and mapped imports stay local. Source review and assumption revision are distinct; workshop answers affect readiness without changing numbers. Workflow nodes are inspectable task responsibilities, not a general designer.
 
-```mermaid
-sequenceDiagram
-  participant Agent
-  participant Policy
-  participant Approver
-  participant DB
-  participant Job as Inngest
-  participant Provider
-  Agent->>Policy: action proposal
-  Policy-->>DB: pending approval + immutable revision
-  Approver->>DB: decision(id, revision)
-  DB-->>Job: organisation, payload hash, idempotency key
-  Job->>Job: verify actor, version, expiry, policy, hash
-  Job->>Provider: exact reviewed payload
-  Provider-->>DB: execution receipt
-```
+`evaluation.ts` replays fixed versioned Support cases, runs a local Decimal/Papa Parse reporting pipeline, and reconciles recorded reporting narration against a fixed dataset. Metrics compare expected/output rows. Timelines show sources, errors and human controls. Edited CSV receives deterministic calculations only, never invented AI output. Stored input revisions expose stale runs; unsafe releases gate investment.
 
-Editing never mutates the reviewed payload; it creates a new approval revision. Gmail content approval creates a draft. Sending requires a new `gmail.send` approval.
+`validation.ts` suggests a plan from actual baseline, gaps, sensitivity and failures. Review/edit/save is explicit. Recommendation snapshots retain historical facts; subsequent changes flag them for review.
 
-## Tenant boundary
+## Deliverables and assurance
 
-Browser reads and writes use session-bound Supabase clients. RLS evaluates membership and role for each tenant table and the first private-storage path segment. Integration secrets have no authenticated-client read policy. Background code may construct a service client only after a verified request, OAuth callback, or signed Inngest event provides an organisation context.
+Focused export modules project one saved draft or captured snapshot into an allowlisted payload. Unsaved/live edits cannot leak into historical financial results. Current branding is an explicit rendering input. ExcelJS and PptxGenJS load on demand in-browser. Workbook sheets contain computed values and formula explanations, not a second engine; optional task/workshop/evaluation sheets retain detail. Eight slides use native editable objects and bounded text referencing full workbook records.
 
-## Repository map
-
-- `src/app`: routes and API boundaries.
-- `src/modules`: domain logic, UI, agents, integrations, exports, and deterministic engines.
-- `src/inngest`: durable functions.
-- `src/config`: versioned model routing and cost configuration.
-- `src/lib/domain`: stable public contracts.
-- `supabase/migrations`: relational schema, RLS, storage policies, and immutability triggers.
-- `supabase/tests`: pgTAP isolation checks.
-- `tests/e2e`: executive, governance, responsive, and accessibility journeys.
+No entered content is sent to providers, databases, analytics or outbound connectors; site assets still load from the host. Verification includes deterministic/adverse calculations, persistence, migration, recovery, stale writes, replay, exports, browser journeys and automated accessibility. Vercel deploys from main. Provider/database acceptance, complete manual accessibility/Office validation and practitioner usefulness remain outside automated acceptance.

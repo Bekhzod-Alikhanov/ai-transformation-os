@@ -1,6 +1,8 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { expect, it } from "vitest";
-import { createTemplate } from "../templates";
+import { createTemplate as template } from "../templates";
+const createTemplate = (kind: "support" | "reporting") =>
+  template(kind, "legacy_aggregate");
 import {
   createEngagement,
   createOpportunity,

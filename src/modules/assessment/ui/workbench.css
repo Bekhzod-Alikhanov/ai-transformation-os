@@ -164,7 +164,7 @@
 }
 .aw-layout {
   display: grid;
-  grid-template-columns: 168px minmax(0, 1fr) 290px;
+  grid-template-columns: 190px minmax(0, 1fr);
   gap: 22px;
   max-width: 1800px;
   margin: auto;
@@ -172,6 +172,8 @@
   align-items: start;
 }
 .aw-nav {
+  position: sticky;
+  top: 16px;
   padding-top: 9px;
   display: flex;
   flex-direction: column;
@@ -183,7 +185,7 @@
   gap: 8px;
   padding: 7px 8px;
   font-size: 13px;
-  white-space: nowrap;
+  white-space: normal;
   background: transparent;
   border-color: transparent;
 }
@@ -631,11 +633,180 @@
   padding: 22px;
   margin: 0;
 }
+.aw-layout:has(.aw-inspector) {
+  grid-template-columns: 190px minmax(0, 1fr) 290px;
+}
+.aw-verdict {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 30px;
+  padding: 28px 30px;
+  background: #eaf0e9;
+  border: 1px solid #c9d6c6;
+  border-left: 5px solid #176b58;
+  border-radius: 7px;
+}
+.aw-verdict h2 {
+  font-size: clamp(25px, 3vw, 35px);
+  color: #174b3e;
+}
+.aw-verdict-option {
+  font-size: 17px;
+}
+.aw-verdict-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+}
+.aw-verdict-actions small {
+  color: #566b5d;
+}
+.aw-cockpit-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  border: 1px solid #d8dbd2;
+  border-radius: 7px;
+  overflow: hidden;
+  background: white;
+}
+.aw-shell .aw-kpi {
+  padding: 20px;
+  border: 0;
+  border-radius: 0;
+  border-right: 1px solid #e1e4da;
+  border-bottom: 1px solid #e1e4da;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.aw-kpi > span {
+  color: #5b6457;
+  font-size: 12px;
+}
+.aw-kpi strong {
+  font-size: clamp(20px, 2.2vw, 30px);
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: #176b58;
+  overflow-wrap: anywhere;
+}
+.aw-kpi small {
+  font-size: 10px;
+  color: #646c5e;
+}
+.aw-cockpit-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.aw-cockpit-columns .aw-request {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+.aw-alternative {
+  display: grid;
+  grid-template-columns: 180px 1fr auto;
+  gap: 15px;
+  padding: 14px 0;
+  border-top: 1px solid #e1e4da;
+  align-items: start;
+}
+.aw-alternative p {
+  font-size: 12px;
+}
+.aw-workshop-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.aw-workshop-question,
+.aw-evaluation-case {
+  background: #fafbf7;
+  border: 1px solid #d8dbd2;
+  border-radius: 5px;
+  padding: 16px;
+}
+.aw-workshop-question .aw-field {
+  margin-bottom: 12px;
+}
+.aw-workflow-lanes {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+.aw-workflow-nodes {
+  display: flex;
+  align-items: stretch;
+  gap: 18px;
+}
+.aw-shell .aw-workflow-node {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 18px;
+  border-top: 3px solid #60675b;
+}
+.aw-workflow-node:not(:last-child)::after {
+  content: "→";
+  position: absolute;
+  right: -16px;
+  top: 40%;
+  color: #6f7867;
+}
+.aw-shell .aw-node-agent {
+  border-top-color: #3157d5;
+  background: #f5f7ff;
+}
+.aw-shell .aw-node-automation {
+  border-top-color: #176b58;
+  background: #f2f8f4;
+}
+.aw-workflow-node small {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 10px;
+}
+.aw-workflow-node span {
+  font-size: 11px;
+  color: #5c6558;
+}
+.aw-timeline {
+  border-left: 1px solid #cbd4c4;
+  margin-left: 8px;
+  padding-left: 25px !important;
+}
+.aw-timeline li {
+  padding: 7px 0;
+}
+.aw-shell .aw-task-table {
+  min-width: 1450px;
+}
+.aw-shell .aw-task-table td .aw-field {
+  min-width: 90px;
+}
+.aw-shell .aw-task-table td:first-child .aw-field {
+  min-width: 150px;
+}
 @media (max-width: 1279px) {
   .aw-layout {
-    grid-template-columns: 150px minmax(0, 1fr);
+    grid-template-columns: 190px minmax(0, 1fr);
     gap: 18px;
     padding: 20px;
+  }
+  .aw-layout:has(.aw-inspector) {
+    grid-template-columns: 190px minmax(0, 1fr);
+  }
+  .aw-verdict {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 @media (max-width: 760px) {
@@ -663,6 +834,7 @@
     padding: 16px;
   }
   .aw-nav {
+    position: static;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
@@ -708,4 +880,30 @@
   .aw-header .aw-local {
     flex-basis: 100%;
   }
+  .aw-cockpit-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .aw-cockpit-columns,
+  .aw-workshop-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .aw-verdict {
+    padding: 20px;
+    gap: 16px;
+  }
+  .aw-alternative {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .aw-workflow-nodes {
+    flex-direction: column;
+  }
+  .aw-workflow-node:not(:last-child)::after {
+    content: "↓";
+    top: auto;
+    bottom: -20px;
+    right: 50%;
+  }
+}
+.aw-kpi strong.aw-negative {
+  color: var(--aw-danger, #a72f3b);
 }

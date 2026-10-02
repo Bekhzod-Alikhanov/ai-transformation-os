@@ -2,9 +2,10 @@ import { useState } from "react";
 import type { SolutionOption } from "../types";
 import type { SurfaceProps } from "./surface";
 import { useDraft } from "./drafts";
-import { Field, ErrorMessage, errorText } from "./fields";
+import { Field, Select, ErrorMessage, errorText } from "./fields";
 import { MetadataFields } from "./provenance";
 import { OptionLines } from "./option-lines";
+import { TaskEditor } from "./task-editor";
 import {
   saveOption,
   inputLabels,
@@ -32,14 +33,82 @@ export function OptionEditor({
     <section className="aw-panel aw-stack">
       <h2>Base assumptions · {option.name}</h2>
       <p className="aw-muted">
-        Blank means unknown. Results below use saved inputs. Baseline volume,
-        time, hourly cost, productive hours and discount rate are shared: saving
-        changes applies them to every option.
+        Blank means unknown. Comparison uses working drafts immediately.
+        Baseline volume, time, hourly cost, productive hours and discount rate
+        are shared: saving changes applies them to every option.
       </p>
       <fieldset
         disabled={props.busy || props.engagement.archived}
         className="aw-stack"
       >
+        <TaskEditor value={value} onChange={edit} />
+        <details>
+          <summary>Option-specific suitability & controls</summary>
+          <div className="aw-grid">
+            {(["data", "technical"] as const).map((key) => (
+              <Select
+                key={key}
+                label={`Option ${key} readiness`}
+                value={value.readiness?.[key] ?? "unknown"}
+                onChange={(s) =>
+                  edit({
+                    ...value,
+                    readiness: {
+                      data: "unknown",
+                      technical: "unknown",
+                      controlsOpen: false,
+                      validationRequired: true,
+                      ...value.readiness,
+                      [key]: s as "unknown" | "ready" | "concern",
+                    },
+                  })
+                }
+              >
+                <option value="unknown">Not assessed</option>
+                <option value="ready">Ready</option>
+                <option value="concern">Needs validation</option>
+              </Select>
+            ))}
+          </div>
+          <label className="aw-check">
+            <input
+              type="checkbox"
+              checked={value.readiness?.controlsOpen ?? false}
+              onChange={(ev) =>
+                edit({
+                  ...value,
+                  readiness: {
+                    data: "unknown",
+                    technical: "unknown",
+                    validationRequired: true,
+                    ...value.readiness,
+                    controlsOpen: ev.target.checked,
+                  },
+                })
+              }
+            />
+            Critical controls unresolved for this option
+          </label>
+          <label className="aw-check">
+            <input
+              type="checkbox"
+              checked={value.readiness?.validationRequired ?? false}
+              onChange={(ev) =>
+                edit({
+                  ...value,
+                  readiness: {
+                    data: "unknown",
+                    technical: "unknown",
+                    controlsOpen: false,
+                    ...value.readiness,
+                    validationRequired: ev.target.checked,
+                  },
+                })
+              }
+            />
+            Representative validation required for this option
+          </label>
+        </details>
         <div className="aw-grid">
           {(Object.keys(inputLabels) as (keyof typeof inputLabels)[]).map(
             (field) => (

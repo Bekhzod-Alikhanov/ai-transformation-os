@@ -38,7 +38,7 @@ export function proxy(request: NextRequest) {
   const headers = new Headers(request.headers);
   headers.set(
     "x-assessment-surface",
-    request.nextUrl.pathname === "/workbench" ? "workbench" : "legacy",
+    PUBLIC_PATHS.has(request.nextUrl.pathname) ? "workbench" : "legacy",
   );
   return NextResponse.next({ request: { headers } });
 }

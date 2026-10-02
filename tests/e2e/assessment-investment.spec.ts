@@ -26,7 +26,7 @@ async function stored(page: Page): Promise<Workspace> {
 }
 async function options(page: Page) {
   await page
-    .getByRole("button", { name: "Options & Value", exact: true })
+    .getByRole("button", { name: "Investment Comparison", exact: true })
     .click();
 }
 async function saveBase(page: Page) {
@@ -78,7 +78,7 @@ test("pending native saves preserve newer validation and simulation drafts", asy
   await page.goto("/workbench");
   await page.getByRole("button", { name: "Use support template" }).click();
   await page
-    .getByRole("button", { name: "Recommendation", exact: true })
+    .getByRole("button", { name: "Pilot & Recommendation", exact: true })
     .click();
   await page
     .getByRole("textbox", { name: "Validation owner", exact: true })
@@ -145,7 +145,7 @@ test("removed cost provenance remains available as read-only history", async ({
   await options(page);
   const cost = (await stored(page)).engagements[0].opportunities[0].options[2]
     .costs[0];
-  await page.getByText("Explicit cost lines (2)", { exact: true }).click();
+  await page.getByText("Explicit cost lines (8)", { exact: true }).click();
   await page
     .getByRole("button", { name: "Remove cost 1", exact: true })
     .click();
@@ -179,26 +179,42 @@ for (const kind of ["support", "reporting"] as const)
     await page.goto("/workbench");
     await page.getByRole("button", { name: `Use ${kind} template` }).click();
     await options(page);
+    await page
+      .getByRole("button", { name: "Human-reviewed AI", exact: true })
+      .click();
+    if (kind === "reporting")
+      await page
+        .getByRole("button", {
+          name: "Use Human-reviewed AI for recommendation",
+          exact: true,
+        })
+        .click();
     for (const button of await page
       .getByRole("navigation", { name: "Assessment sections" })
       .getByRole("button")
       .all()) {
       expect(
         await button.evaluate((el) => el.getBoundingClientRect().height),
-      ).toBeLessThan(43);
+      ).toBeLessThan(85);
     }
     await page.getByLabel("Adoption (%)", { exact: true }).fill("63");
     await saveBase(page);
     await page
-      .getByRole("button", { name: "Process and rules", exact: true })
+      .getByRole("button", {
+        name: /^(Process and rules|Rules-based automation)$/,
+        exact: true,
+      })
       .click();
     await expect(page.getByLabel("Adoption (%)", { exact: true })).toHaveValue(
-      "80",
+      "85",
     );
     await page.getByLabel("Adoption (%)", { exact: true }).fill("71");
     await saveBase(page);
     await page
-      .getByRole("button", { name: "AI assistance", exact: true })
+      .getByRole("button", {
+        name: /^(AI assistance|Human-reviewed AI)$/,
+        exact: true,
+      })
       .click();
     await expect(page.getByLabel("Adoption (%)", { exact: true })).toHaveValue(
       "63",
@@ -225,7 +241,7 @@ for (const kind of ["support", "reporting"] as const)
       initial.engagements[0].opportunities[0].options[2].inputs.adoption,
     ).toBe(0.63);
     await page
-      .getByRole("button", { name: "Recommendation", exact: true })
+      .getByRole("button", { name: "Pilot & Recommendation", exact: true })
       .click();
     await expect(
       page.getByText(/What-if scenarios do not change this base/),
@@ -300,8 +316,8 @@ for (const kind of ["support", "reporting"] as const)
       .getByRole("button", {
         name:
           kind === "support"
-            ? "Support operations assessment"
-            : "Monthly reporting assessment",
+            ? "Support Operations Copilot"
+            : "Executive Reporting Automation",
         exact: true,
       })
       .click();
@@ -343,7 +359,7 @@ test("accepted support and explicit risk gate investment without rewriting base 
   page,
 }) => {
   const workspace = createWorkspace(),
-    e = createTemplate("support"),
+    e = createTemplate("support", "legacy_aggregate"),
     o = e.opportunities[0];
   workspace.engagements.push(e);
   o.adoption = "ready";
@@ -370,7 +386,7 @@ test("accepted support and explicit risk gate investment without rewriting base 
     .getByRole("button", { name: "Support operations assessment", exact: true })
     .click();
   await page
-    .getByRole("button", { name: "Recommendation", exact: true })
+    .getByRole("button", { name: "Pilot & Recommendation", exact: true })
     .click();
   await expect(page.getByLabel("Risk readiness")).toHaveValue("unknown");
   await page.getByText(/Resolve \d+ blockers/).click();
@@ -387,7 +403,7 @@ test("accepted support and explicit risk gate investment without rewriting base 
     .getByRole("button", { name: "Accept evidence", exact: true })
     .click();
   await page
-    .getByRole("button", { name: "Recommendation", exact: true })
+    .getByRole("button", { name: "Pilot & Recommendation", exact: true })
     .click();
   await page.getByLabel("Risk readiness").selectOption("ready");
   await page.getByRole("button", { name: "Save readiness" }).click();
@@ -421,13 +437,19 @@ test("worker cancellation, stored reproducibility, staleness and option switchin
   await expect(page.getByText("Cancelled. No result was saved.")).toBeVisible();
   await page.getByRole("button", { name: "Run 10,000 draws" }).click();
   await page
-    .getByRole("button", { name: "Process and rules", exact: true })
+    .getByRole("button", {
+      name: /^(Process and rules|Rules-based automation)$/,
+      exact: true,
+    })
     .click();
   await expect(
     page.getByRole("button", { name: "Save simulation summary" }),
   ).toHaveCount(0);
   await page
-    .getByRole("button", { name: "AI assistance", exact: true })
+    .getByRole("button", {
+      name: /^(AI assistance|Human-reviewed AI)$/,
+      exact: true,
+    })
     .click();
   await page.getByRole("button", { name: "Run 10,000 draws" }).click();
   await page.getByRole("button", { name: "Save simulation summary" }).click();
@@ -472,7 +494,10 @@ test("blank inputs remain unknown through exploratory recommendation", async ({
     page.getByRole("button", { name: "Run 10,000 draws" }),
   ).toHaveCount(0);
   await page
-    .getByRole("button", { name: "AI assistance", exact: true })
+    .getByRole("button", {
+      name: /^(AI assistance|Human-reviewed AI)$/,
+      exact: true,
+    })
     .click();
   await page.getByLabel("Adoption (%)", { exact: true }).fill("120");
   await page
@@ -484,7 +509,7 @@ test("blank inputs remain unknown through exploratory recommendation", async ({
     "adoption",
   );
   await page
-    .getByRole("button", { name: "Recommendation", exact: true })
+    .getByRole("button", { name: "Pilot & Recommendation", exact: true })
     .click();
   await expect(page.getByLabel("Risk readiness")).toHaveValue("unknown");
   await page

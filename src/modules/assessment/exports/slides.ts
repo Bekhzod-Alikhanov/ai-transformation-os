@@ -457,9 +457,13 @@ export async function createSteeringPack(p: ExportPayload): Promise<Blob> {
   );
   card(
     s,
-    `${p.blockers.length} open blockers`,
-    p.blockers.slice(0, 2).join("; ") ||
-      "No policy blockers recorded. This is not certification.",
+    p.evaluations.length
+      ? "Evaluation and human controls"
+      : `${p.blockers.length} open blockers`,
+    p.evaluations.length
+      ? `${p.evaluations.at(-1)!.mode}: ${p.evaluations.at(-1)!.metrics.correct}/${p.evaluations.at(-1)!.metrics.total} correct. ${p.evaluations.at(-1)!.metrics.unsupported} unsupported proposals, ${p.evaluations.at(-1)!.metrics.unsafeReleased} unsafe releases. Human review blocks unsupported outputs. No live LLM performance claimed. Full rows in workbook.`
+      : p.blockers.slice(0, 2).join("; ") ||
+          "No policy blockers recorded. This is not certification.",
     6.75,
     4.35,
     5.9,
@@ -467,7 +471,12 @@ export async function createSteeringPack(p: ExportPayload): Promise<Blob> {
   );
   text(
     s,
-    `Critical controls: ${p.criticalControlsOpen ? "OPEN" : "none marked open"}. Full blocker list in workbook.`,
+    p.tasks.length
+      ? `Workflow: ${p.tasks
+          .filter((t) => t.optionId === p.selectedOptionId)
+          .map((t) => `${t.name} (${t.responsibility})`)
+          .join(" / ")}. Full tasks and source links in workbook.`
+      : `Critical controls: ${p.criticalControlsOpen ? "OPEN" : "none marked open"}. Full blocker list in workbook.`,
     6.75,
     5.96,
     5.9,

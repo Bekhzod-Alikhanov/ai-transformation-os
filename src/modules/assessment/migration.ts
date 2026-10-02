@@ -205,7 +205,7 @@ export function migrateLegacy(text: string): Workspace {
   const legacy = restoreWorkspace(text);
   const migratedAt = new Date().toISOString();
   return workspaceSchema.parse({
-    schemaVersion: 2,
+    schemaVersion: 3,
     revision: 0,
     engagements: legacy.projects.map((project) =>
       migrateProject(project, migratedAt),

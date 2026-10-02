@@ -202,7 +202,7 @@ export function Comparison({
   return (
     <section className="aw-panel aw-stack">
       <div className="aw-section-heading">
-        <h2>Compare saved base cases</h2>
+        <h2>Compare intervention options</h2>
         <button
           onClick={() =>
             inspect({
@@ -210,8 +210,12 @@ export function Comparison({
               content: (
                 <>
                   <p>
-                    Hours = annual volume × max(0, baseline minutes × reduction
-                    − review minutes) ÷ 60 × adoption.
+                    Task hours = sum of annual task volume × [current minutes −
+                    ((1 − eligible × adoption) × current minutes + eligible ×
+                    adoption × (remaining handling + human review + exception
+                    rate × exception handling))] ÷ 60. Negative values mean
+                    added work. Legacy aggregate cases retain their original
+                    gross-reduction calculation.
                   </p>
                   <p>
                     Labour value = hours × hourly cost × realisation. Cash =
@@ -252,6 +256,11 @@ export function Comparison({
               <th>Economic NPV</th>
               <th>Cash NPV</th>
               <th>Initial investment</th>
+              <th>Human hours / year</th>
+              <th>Hours released</th>
+              <th>Year-1 ROI</th>
+              <th>Payback · months</th>
+              <th>Year-1 OPEX</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -264,6 +273,19 @@ export function Comparison({
                   <td>{formatMetric(r.npv, "money", currency)}</td>
                   <td>{formatMetric(r.cashNpv, "money", currency)}</td>
                   <td>{formatMetric(r.investment, "money", currency)}</td>
+                  <td>{formatMetric(r.futureHumanHours ?? null)}</td>
+                  <td>{formatMetric(r.annualHoursSaved)}</td>
+                  <td>
+                    {r.status === "complete" && r.economicRoi === null
+                      ? "Undefined"
+                      : formatMetric(r.economicRoi, "percent")}
+                  </td>
+                  <td>
+                    {r.status === "complete" && r.paybackMonths === null
+                      ? "Not reached"
+                      : formatMetric(r.paybackMonths)}
+                  </td>
+                  <td>{formatMetric(r.annualOpex, "money", currency)}</td>
                   <td>{r.status}</td>
                 </tr>
               );

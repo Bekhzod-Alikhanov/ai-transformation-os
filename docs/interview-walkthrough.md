@@ -1,48 +1,45 @@
-# Beck's five-minute delivery demonstration
+# Beck's six-minute investment demonstration
 
-## Before the interview
+This is a written rehearsal aid, not a guided tour in the website.
 
-Open `/demo` in the browser you will share. Reset both synthetic engagements for a known starting point. Download a workspace backup. Keep the app and an exported steering pack open in case the network fails. Rehearse the actual clicks, not just the narrative. Use only synthetic or non-confidential workshop data.
+## Before sharing
 
-## 0:00–0:40 — The client decision
+Open `/demo`, reset the demo, and back up changes you want to keep. Use no real client information. Prepare a downloaded steering pack as a fallback. Reporting is in the persistent engagement switcher.
 
-“This is an independent prototype I built to demonstrate how I would manage an AI engagement. The question is not simply whether we can build a copilot. It is whether the client should invest, what must be validated, and who is accountable for the result.”
+## 0:00–0:45 — The investment question
 
-Show Support Operations Copilot. Explain the problem, annual hours released, investment and recommendation. The synthetic client is Aster, not a real reference client.
+Show Support Operations Copilot. “I built this independent prototype to answer whether a client should invest in AI, choose a simpler alternative, or keep manual work. It joins financial modelling, evidence, evaluation and delivery judgment. All example data and AI outputs are synthetic.”
 
-## 0:40–1:45 — Challenge the economics
+Explain Pilot AI. The base model releases roughly 3,631 annual hours (2.06 FTE-equivalent capacity), with $45,000 initial investment. Inspect NPV and its monthly-discount convention. Positive economic NPV and negative cash-only NPV are deliberately different: released capacity is not guaranteed cash saving.
 
-Open Business case. Compare Process & rules, Assisted copilot, and Broad automation. Show why the expensive option produces a Stop recommendation. Return to Assisted copilot. Explain that non-AI process improvement is a genuine alternative.
+## 0:45–1:45 — Change the recommendation
 
-Change initial investment to $40,000 and save. Show hours, ramp-adjusted first-year ROI, OPEX, payback, economic NPV and cash-only NPV. “Hours released are not layoffs or guaranteed cash savings. Finance needs an explicit realization mechanism.”
+Lower Challenge adoption from 85% to 10%. Rules-based automation becomes preferred immediately. These are draft calculations, not a saved decision. Discard the challenge.
 
-If asked about uncertainty, show conservative/upside scenarios and run uncertainty analysis. Explain the assumed distributions and that this is not measured production confidence.
+Open Investment Comparison and show four alternatives. Cost timing, operations, review workload and cash mechanisms are editable. Sensitivity and 10,000-draw uncertainty describe specified assumptions, not the probability of real project success.
 
-## 1:45–2:35 — Evidence and technical judgment
+## 1:45–2:45 — Trace the number
 
-Open Evidence, select Adoption needs validation. Read the conflicting source excerpt. Enter: “Use 70% as a pilot hypothesis; validate with weekly adoption reviews.” Accept evidence. Explain that accepting a planning assumption does not prove it true or overwrite economics.
+Open Process & Evidence. Inspect a synthetic source excerpt and review rationale. Show discovery questions and accountable evidence requests. Acceptance never silently replaces financial assumptions.
 
-Open Solution & evaluation. Inspect the unauthorized-payment example and unsupported citation. Run evaluation. Show that raw model suggestions are imperfect, and that human review is an intentional, costed control. These are authored fixtures, not live model calls.
+In Investment Comparison, inspect tasks: current minutes, eligibility, handling, review and exceptions determine human hours. Machine latency is not labour savings. Aggregate assessments can remain aggregate until explicitly converted.
 
-## 2:35–3:35 — Handle the delivery setback
+## 2:45–3:45 — Inspect the failure and control
 
-Open Delivery plan. Show owners, dependencies, control risks and budget. If the interviewer changes the brief, apply the budget cut or ten-day data delay and explain the resulting replan.
+Open Agent & Evaluation. Inspect a future workflow node. Run synthetic support replay. Expand the refund-without-approval case: the unsupported recorded promise is blocked by policy and human escalation. Inspect the incorrectly routed invoice. Metrics come from rows rather than fixed headline scores. These are authored fixtures, not live AI.
 
-Open Outcomes & decision. Load adoption setback, then Save measurements. Quality passes but adoption is 38%, so the recommendation becomes Fix after the evidence and evaluation gates above. “I would not scale on a good demo. I would address adoption with an accountable owner and a time-boxed review.”
+## 3:45–4:45 — Validation and handover
 
-## 3:35–4:20 — Record the accountable decision
+Open Pilot & Recommendation. Generate a plan, review baseline, measurement method, owner, budget, controls and stop criteria, then save. Record **Validate through pilot**, with rationale, conditions and next decision date. This is advisory, not spending approval. Later changes mark the snapshot stale rather than rewriting history.
 
-Choose Fix, owner Beck, a valid follow-up date, a concise rationale, and named conditions such as protected training and weekly adoption reviews. Record decision. Show the preserved snapshot and engagement history. Reload to demonstrate persistence.
+Open Client deliverables, select the snapshot and preview/download Markdown, PowerPoint and Excel. They share the reviewed basis; internal notes are excluded by default.
 
-Switch to Sponsor view and download the current decision brief or editable steering pack. The export reflects what you just changed, not a fixed sales story.
+## 4:45–6:00 — When not to use AI
 
-## 4:20–5:00 — A second, contrasting engagement
+Switch to Executive Reporting Automation: non-AI rules-based automation is preferred. Run local reporting rules and preview totals/variances. Compare the fixed recorded AI narrative: reconciliation catches unsupported “all departments over budget” claims.
 
-Switch to Executive reporting. The time-saving opportunity is strong, but no direct cash savings are assumed. Open Solution & evaluation and show the conflicting finance figure: publication is blocked until a reviewer reconciles it. Explain how the same delivery discipline works across use cases without pretending their risks or value mechanisms are identical.
+“An AI delivery lead should choose the simplest intervention that meets the client's objective. This workbench makes that judgment inspectable and produces the evidence and validation handover.”
 
-## Be ready for questions
+## Production boundary
 
-- **What is real?** Calculations, input validation, CSV parsing, local persistence, policy logic and exports. Sources and AI outputs are synthetic. No production connectors or live AI.
-- **How would it become production-ready?** Authenticated tenant storage; evidence access controls; representative evaluations; approved model integration; monitoring, incident response and cost controls; legal/security review; named service ownership.
-- **What did you personally deliver?** Describe your actual design, implementation and verification work accurately. Do not present the synthetic projects as employment experience.
-- **What would make you stop?** Negative measured economics, unsafe controls, unsupported evidence, unresolved spend or persistent adoption failure—not simply an attractive interface.
+No live LLM, cloud database, confidential-data controls, collaboration or Google integration is included. Production would require security, tenancy, provider evaluation, observability and practitioner testing. This demonstrates assessment and delivery engineering, not production certification.

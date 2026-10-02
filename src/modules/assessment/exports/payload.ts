@@ -3,6 +3,8 @@ import { calculateOption, sensitivityOption } from "../economics";
 import type { Engagement, Workspace } from "../types";
 import type { DeliverablesProps } from "../ui/surface";
 import { artifactAccent } from "../brand";
+import { compareInvestment } from "../decision";
+import { evaluationMetrics } from "../evaluation";
 
 export const DISCLOSURE =
   "Synthetic assessment only. Advisory projections, not measured client results or certification.";
@@ -153,6 +155,10 @@ export function prepareSelection(
         : "Sensitivity could not be calculated.";
   }
   const sourceRevision = snapshot?.sourceRevision ?? o.revision;
+  const comparison = compareInvestment(e as Engagement, {
+    ...o,
+    recommendations: [],
+  });
   return {
     title: `${brand.name || "Assessment"} · ${o.name || "Untitled opportunity"}`,
     brand: {
@@ -160,8 +166,65 @@ export function prepareSelection(
       accent: artifactAccent(brand.accent),
     },
     notice: DISCLOSURE,
-    modelVersion: "assessment-v2.1",
-    schemaVersion: 2,
+    modelVersion: selected.taskPlan ? "assessment-v3.0" : "assessment-v2.1",
+    schemaVersion: 3,
+    comparison: {
+      outcome: comparison.outcome,
+      preferredName: comparison.preferredName,
+      objective: comparison.policy.objective,
+      paybackCeiling: comparison.policy.paybackCeiling,
+      reasons: comparison.reasons,
+      reversalConditions: comparison.reversalConditions,
+    },
+    tasks: o.options.flatMap((option) =>
+      (option.taskPlan?.rows ?? []).map((r) => ({
+        optionId: option.id,
+        optionName: option.name,
+        id: r.id,
+        name: r.name,
+        annualVolume: r.annualVolume,
+        currentMinutes: r.currentMinutes,
+        responsibility: r.responsibility,
+        eligible: r.eligible,
+        adoption: option.inputs.adoption,
+        referenceReduction: option.taskPlan?.referenceReduction ?? null,
+        selectedReduction: option.inputs.reduction,
+        baselineKey: r.baselineKey ?? null,
+        remainingMinutes: r.remainingMinutes,
+        reviewMinutes: r.reviewMinutes,
+        exceptionRate: r.exceptionRate,
+        exceptionMinutes: r.exceptionMinutes,
+        evidenceIds: [...r.evidenceIds],
+        assumed: r.assumed,
+      })),
+    ),
+    questions: (o.questions ?? []).map((q) => ({
+      area: q.area,
+      question: q.question,
+      answer: q.answer,
+      owner: q.owner,
+      evidenceIds: [...q.evidenceIds],
+      unresolved: q.unresolved,
+    })),
+    evaluations: (o.evaluations ?? []).map((r) => ({
+      id: r.id,
+      optionId: r.optionId,
+      datasetVersion: r.datasetVersion,
+      mode: r.mode,
+      at: r.at,
+      inputRevision: r.inputRevision,
+      metrics: evaluationMetrics(r),
+      cases: r.cases.map((c) => ({
+        input: c.input,
+        expected: c.expected,
+        output: c.output,
+        supported: c.supported,
+        escalated: c.escalated,
+        control: c.control,
+        sourceRefs: [...c.sourceRefs],
+        events: c.events.map((v) => ({ stage: v.stage, detail: v.detail })),
+      })),
+    })),
     kind: snapshot ? "snapshot" : "draft",
     status: snapshot
       ? options.find((x) => x.selected)!.financial.status === "complete"
@@ -257,7 +320,15 @@ export function prepareSelection(
     sensitivity,
     sensitivityIssue,
     includeInternalNotes,
-    methods: METHODS.map(([method, definition]) => ({ method, definition })),
+    methods: METHODS.map(([method, definition]) => ({
+      method,
+      definition:
+        method === "Hours" && selected.taskPlan
+          ? "Task future minutes = (1 − eligible × adoption) × current minutes + eligible × adoption × (remaining handling + human review + exception rate × exception handling). Hours released = sum volume × (current − future) / 60. Negative values are added human workload. Gross-reduction sensitivity scales handling savings relative to the task plan reference; it never scales review or exceptions."
+          : method === "Precision and unknowns" && selected.taskPlan
+            ? definition.replace("assessment-v2.1", "assessment-v3.0")
+            : definition,
+    })),
   };
 }
 export type ExportPayload = ReturnType<typeof prepareSelection>;

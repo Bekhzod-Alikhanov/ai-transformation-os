@@ -1,5 +1,7 @@
 import { expect, it } from "vitest";
-import { createTemplate } from "../templates";
+import { createTemplate as template } from "../templates";
+const createTemplate = (kind: "support" | "reporting") =>
+  template(kind, "legacy_aggregate");
 import {
   saveOption,
   saveProvenance,

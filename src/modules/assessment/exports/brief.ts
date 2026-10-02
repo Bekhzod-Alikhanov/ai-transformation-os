@@ -111,6 +111,27 @@ export function investmentBrief(p: ExportPayload): string {
             `- Request: ${md(r.question)}; owner: ${md(r.owner)}; decision impact: ${md(r.impact)}`,
         ),
       `## Validation handover`,
+      ...(p.tasks.length
+        ? [
+            "## Proposed workflow",
+            ...p.tasks
+              .filter((t) => t.optionId === p.selectedOptionId)
+              .map(
+                (t) =>
+                  `- ${md(t.name)}: ${t.responsibility}, remaining ${shown(t.remainingMinutes)} min + ${shown(t.reviewMinutes)} human review. Exceptions ${shown(t.exceptionRate)} × ${shown(t.exceptionMinutes)} min. ${t.assumed ? "Synthetic assumption" : "Evidence linked"}.`,
+              ),
+          ]
+        : []),
+      ...(p.evaluations.length
+        ? [
+            "## Evaluation limitations and human controls",
+            ...p.evaluations.map(
+              (r) =>
+                `${r.mode} (${md(r.datasetVersion)}), ${r.metrics.correct}/${r.metrics.total} correct values/labels. Unsupported proposals: ${r.metrics.unsupported}. Unsafe releases: ${r.metrics.unsafeReleased}. Input revision ${r.inputRevision}; no live LLM performance claimed.\n${r.cases.map((c) => `- ${md(c.input)}: expected ${md(c.expected)}, output ${md(c.output)}. ${md(c.control)}`).join("\n")}`,
+            ),
+          ]
+        : []),
+      `Calculated option advice: ${md(p.comparison.outcome)}. Preferred: ${md(p.comparison.preferredName)}. Objective: ${p.comparison.objective}. The recorded human outcome remains separate.`,
       ...p.validation.map(
         (v) =>
           `- ${v.field}: ${v.field === "budgetCeiling" ? amount(v.value as number | null, p) : md(v.value)}`,

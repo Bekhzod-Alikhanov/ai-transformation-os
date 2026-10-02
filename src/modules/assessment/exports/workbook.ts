@@ -22,7 +22,7 @@ export async function createAssessmentWorkbook(
     moneyColumns: number[] = [],
   ) {
     const sheet = book.addWorksheet(name, {
-      views: [{ state: "frozen", ySplit: 1, xSplit: 1 }],
+      views: [{ state: "frozen", ySplit: 1, xSplit: 1, showGridLines: false }],
     });
     sheet.addRow(headers);
     for (const values of rows) {
@@ -424,6 +424,91 @@ export async function createAssessmentWorkbook(
       ["Sensitivity issue", shown(p.sensitivityIssue || "None")],
     ],
   );
+  if (p.tasks.length)
+    table(
+      "Task model",
+      [
+        "Option",
+        "Activity",
+        "Executions/year",
+        "Current min",
+        "Responsibility",
+        "Eligible fraction",
+        "Adoption fraction",
+        "Handling reference reduction",
+        "Selected reduction",
+        "Remaining min",
+        "Human review min",
+        "Exception fraction",
+        "Exception min",
+        "Evidence IDs",
+        "Explicit assumption",
+      ],
+      p.tasks.map((r) => [
+        r.optionName,
+        r.name,
+        r.annualVolume,
+        r.currentMinutes,
+        r.responsibility,
+        r.eligible,
+        r.adoption,
+        r.referenceReduction,
+        r.selectedReduction,
+        r.remainingMinutes,
+        r.reviewMinutes,
+        r.exceptionRate,
+        r.exceptionMinutes,
+        r.evidenceIds.join(", "),
+        r.assumed,
+      ]),
+    );
+  if (p.questions.length)
+    table(
+      "Workshop",
+      ["Area", "Question", "Answer", "Owner", "Evidence IDs", "Unresolved"],
+      p.questions.map((q) => [
+        q.area,
+        q.question,
+        q.answer,
+        q.owner,
+        q.evidenceIds.join(", "),
+        q.unresolved,
+      ]),
+    );
+  if (p.evaluations.length)
+    table(
+      "Evaluation",
+      [
+        "Run",
+        "Mode",
+        "Dataset",
+        "Input revision",
+        "Input",
+        "Expected",
+        "Output",
+        "Supported",
+        "Escalated",
+        "Human control",
+        "Source references",
+        "Timeline",
+      ],
+      p.evaluations.flatMap((r) =>
+        r.cases.map((c) => [
+          r.id,
+          r.mode,
+          r.datasetVersion,
+          r.inputRevision,
+          c.input,
+          c.expected,
+          c.output,
+          c.supported,
+          c.escalated,
+          c.control,
+          c.sourceRefs.join("; "),
+          c.events.map((v) => `${v.stage}: ${v.detail}`).join("\n"),
+        ]),
+      ),
+    );
   // No cell formulas, macros, external links, hidden sheets or raw JSON metadata.
   const bytes: ExcelJS.Buffer = await book.xlsx.writeBuffer();
   return new Blob([new Uint8Array(bytes)], {

@@ -122,7 +122,7 @@ export const triangularRangeSchema = z
     "Range must satisfy min <= mode <= max",
   );
 export const simulationSummarySchema = z.object({
-  modelVersion: z.literal("assessment-v2.1"),
+  modelVersion: z.enum(["assessment-v2.1", "assessment-v3.0"]),
   seed: z.number().int(),
   inputRevision: revision,
   draws: z.literal(10000),
@@ -144,6 +144,61 @@ export const simulationSummarySchema = z.object({
     costMultiplier: triangularRangeSchema,
   }),
 });
+export const taskRowSchema = z.object({
+  id,
+  baselineKey: id.optional(),
+  name: z.string(),
+  annualVolume: number.nullable(),
+  currentMinutes: number.nullable(),
+  eligible: fraction.nullable(),
+  responsibility: z.enum(["human", "automation", "agent"]),
+  remainingMinutes: number.nullable(),
+  reviewMinutes: number.nullable(),
+  exceptionRate: fraction.nullable(),
+  exceptionMinutes: number.nullable(),
+  evidenceIds: z.array(id),
+  assumed: z.boolean(),
+});
+export const workshopQuestionSchema = z.object({
+  id,
+  area: z.enum([
+    "workload",
+    "variation",
+    "data",
+    "quality",
+    "controls",
+    "adoption",
+    "value",
+  ]),
+  question: z.string(),
+  answer: z.string(),
+  owner: z.string(),
+  evidenceIds: z.array(id),
+  unresolved: z.boolean(),
+});
+export const evaluationRunSchema = z.object({
+  id,
+  optionId: id,
+  datasetVersion: z.string(),
+  at: z.iso.datetime(),
+  inputRevision: revision,
+  mode: z.enum(["synthetic_replay", "local_rules"]),
+  cases: z.array(
+    z.object({
+      id,
+      input: z.string(),
+      expected: z.string(),
+      output: z.string(),
+      correct: z.boolean(),
+      supported: z.boolean(),
+      escalated: z.boolean(),
+      requiredEscalation: z.boolean(),
+      control: z.string(),
+      sourceRefs: z.array(z.string()),
+      events: z.array(z.object({ stage: z.string(), detail: z.string() })),
+    }),
+  ),
+});
 export const solutionOptionSchema = z.object({
   id,
   name: z.string(),
@@ -155,6 +210,28 @@ export const solutionOptionSchema = z.object({
   benefits: z.array(benefitLineSchema),
   scenarios: z.array(scenarioSchema),
   simulation: simulationSummarySchema.nullable(),
+  taskPlan: z
+    .object({
+      rows: z.array(taskRowSchema).min(1),
+      referenceReduction: fraction.optional(),
+    })
+    .nullable()
+    .optional(),
+  readiness: z
+    .object({
+      data: z.enum(["unknown", "ready", "concern"]),
+      technical: z.enum(["unknown", "ready", "concern"]),
+      controlsOpen: z.boolean(),
+      validationRequired: z.boolean(),
+      evaluationDataset: z
+        .enum([
+          "support-fixtures-v1",
+          "reporting-rules-v1",
+          "reporting-narrative-fixtures-v1",
+        ])
+        .optional(),
+    })
+    .optional(),
 });
 export const outcomeSchema = z.enum([
   "Investigate",
@@ -176,7 +253,13 @@ export const assessmentResultSchema = z.object({
   blockers: z.array(
     z.object({
       message: z.string(),
-      section: z.enum(["brief", "evidence", "options", "recommendation"]),
+      section: z.enum([
+        "brief",
+        "evidence",
+        "options",
+        "evaluation",
+        "recommendation",
+      ]),
       targetId: id.optional(),
     }),
   ),
@@ -210,6 +293,15 @@ export const opportunitySnapshotSchema = z.object({
   criticalControlsOpen: z.boolean(),
   economicHurdle: z.number().finite(),
   budgetCeiling: number.nullable(),
+  questions: z.array(workshopQuestionSchema).optional(),
+  evaluations: z.array(evaluationRunSchema).optional(),
+  decisionPolicy: z
+    .object({
+      objective: z.enum(["economic", "cash"]),
+      paybackCeiling: number.max(36),
+      npvHurdle: z.number().finite(),
+    })
+    .optional(),
 });
 export const engagementSummarySchema = z.object({
   id,
@@ -269,6 +361,8 @@ function validateOpportunityIntegrity(
     opportunity.evidence,
     opportunity.requests,
     opportunity.assumptions,
+    opportunity.questions ?? [],
+    opportunity.evaluations ?? [],
   ].forEach((list) => list.forEach(register));
   const options = new Set(opportunity.options.map((option) => option.id));
   const evidence = new Set(opportunity.evidence.map((source) => source.id));
@@ -283,7 +377,18 @@ function validateOpportunityIntegrity(
     [option.costs, option.benefits, option.scenarios].forEach((list) =>
       list.forEach(register),
     );
+    for (const task of option.taskPlan?.rows ?? []) {
+      register(task);
+      if (task.evidenceIds.some((eid) => !evidence.has(eid)))
+        issue(`Broken task evidence: ${task.id}`);
+    }
   }
+  for (const question of opportunity.questions ?? [])
+    if (question.evidenceIds.some((eid) => !evidence.has(eid)))
+      issue(`Broken question evidence: ${question.id}`);
+  for (const run of opportunity.evaluations ?? [])
+    if (!options.has(run.optionId))
+      issue(`Broken evaluation option: ${run.id}`);
   for (const assumption of opportunity.assumptions)
     if (
       !options.has(assumption.optionId) ||
@@ -294,7 +399,7 @@ function validateOpportunityIntegrity(
 
 export const workspaceSchema = z
   .object({
-    schemaVersion: z.literal(2),
+    schemaVersion: z.literal(3),
     revision,
     engagements: z.array(engagementSchema),
     brand: z.object({ name: z.string(), accent: z.string() }),
@@ -331,6 +436,9 @@ export const workspaceSchema = z
   });
 
 export type LabourInputs = z.infer<typeof labourInputsSchema>;
+export type TaskRow = z.infer<typeof taskRowSchema>;
+export type WorkshopQuestion = z.infer<typeof workshopQuestionSchema>;
+export type EvaluationRun = z.infer<typeof evaluationRunSchema>;
 export type CostLine = z.infer<typeof costLineSchema>;
 export type BenefitLine = z.infer<typeof benefitLineSchema>;
 export type Evidence = z.infer<typeof evidenceSchema>;

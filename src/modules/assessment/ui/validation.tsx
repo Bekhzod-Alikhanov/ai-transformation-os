@@ -3,6 +3,7 @@ import { validationPlanSchema } from "../types";
 import type { SurfaceProps } from "./surface";
 import { useDraft } from "./drafts";
 import { Field, ErrorMessage, errorText } from "./fields";
+import { generateValidation } from "../validation";
 const prompts = {
   hypotheses:
     "Who uses the output, who could be harmed, and where is its use inappropriate?",
@@ -22,6 +23,30 @@ export function Validation(props: SurfaceProps) {
   return (
     <section className="aw-panel aw-stack">
       <h2>Validation handover</h2>
+      <button
+        disabled={props.busy || props.engagement.archived}
+        onClick={() => {
+          if (
+            draft.dirty &&
+            !window.confirm(
+              "Replace the unsaved validation draft with generated suggestions?",
+            )
+          )
+            return;
+          draft.set(generateValidation(props.engagement, o));
+        }}
+      >
+        Generate plan from this case
+      </button>
+      <p className="aw-muted">
+        Generated thresholds are suggestions. Review ownership, budget and
+        measurement method, then save explicitly.
+      </p>
+      {(!draft.value.owner.trim() || !draft.value.thresholds.trim()) && (
+        <p className="aw-callout">
+          Incomplete handover: assign an owner and success thresholds.
+        </p>
+      )}
       <p className="aw-muted">
         Advisory planning, not approval. These prompts draw on the voluntary
         NIST AI RMF; this workbench does not implement the full framework or

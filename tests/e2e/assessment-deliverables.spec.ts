@@ -71,7 +71,9 @@ test("saved draft and historical deliverables download locally with matching val
   await page.getByText("Workspace backup / restore", { exact: true }).click();
   await page.getByRole("button", { name: e.name, exact: true }).click();
   await page.getByLabel("Client", { exact: true }).fill("UNSAVEDCONTENTCANARY");
-  await page.getByRole("button", { name: "Deliverables", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Client deliverables", exact: true })
+    .click();
   const preview = page.getByLabel("Investment brief preview", { exact: true });
   await expect(preview).toContainText("CURRENTCONTENTCANARY");
   await expect(preview).not.toContainText("UNSAVEDCONTENTCANARY");

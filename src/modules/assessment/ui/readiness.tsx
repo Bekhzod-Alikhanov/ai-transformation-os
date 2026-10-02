@@ -13,6 +13,7 @@ type Readiness = Pick<
   | "criticalControlsOpen"
   | "economicHurdle"
   | "budgetCeiling"
+  | "decisionPolicy"
 >;
 export function ReadinessControls(props: SurfaceProps) {
   const o = props.opportunity!;
@@ -23,6 +24,11 @@ export function ReadinessControls(props: SurfaceProps) {
     criticalControlsOpen: o.criticalControlsOpen,
     economicHurdle: o.economicHurdle,
     budgetCeiling: o.budgetCeiling,
+    decisionPolicy: o.decisionPolicy ?? {
+      objective: "economic",
+      paybackCeiling: 24,
+      npvHurdle: o.economicHurdle,
+    },
   });
   const [error, setError] = useState("");
   const a = assessOpportunity(props.engagement, o),
@@ -49,6 +55,38 @@ export function ReadinessControls(props: SurfaceProps) {
         does not complete risk assessment.
       </p>
       <div className="aw-grid">
+        <Select
+          label="Comparison objective"
+          value={value.decisionPolicy!.objective}
+          onChange={(objective) =>
+            draft.set({
+              ...value,
+              decisionPolicy: {
+                ...value.decisionPolicy!,
+                objective: objective as "economic" | "cash",
+              },
+            })
+          }
+        >
+          <option value="economic">
+            Economic value (capacity + cash subset)
+          </option>
+          <option value="cash">Cash-only return</option>
+        </Select>
+        <Field
+          label="Payback ceiling (months)"
+          type="number"
+          value={value.decisionPolicy!.paybackCeiling}
+          onChange={(s) =>
+            draft.set({
+              ...value,
+              decisionPolicy: {
+                ...value.decisionPolicy!,
+                paybackCeiling: s === "" ? NaN : Number(s),
+              },
+            })
+          }
+        />
         {(["feasibility", "adoption", "risk"] as const).map((key) => (
           <Select
             key={key}
@@ -70,6 +108,10 @@ export function ReadinessControls(props: SurfaceProps) {
             draft.set({
               ...value,
               economicHurdle: s.trim() === "" ? NaN : Number(s),
+              decisionPolicy: {
+                ...value.decisionPolicy!,
+                npvHurdle: s.trim() === "" ? NaN : Number(s),
+              },
             })
           }
         />
@@ -100,6 +142,9 @@ export function ReadinessControls(props: SurfaceProps) {
           try {
             if (
               !Number.isFinite(value.economicHurdle) ||
+              !Number.isFinite(value.decisionPolicy!.paybackCeiling) ||
+              value.decisionPolicy!.paybackCeiling < 0 ||
+              value.decisionPolicy!.paybackCeiling > 36 ||
               (value.budgetCeiling !== null &&
                 (!Number.isFinite(value.budgetCeiling) ||
                   value.budgetCeiling < 0))
