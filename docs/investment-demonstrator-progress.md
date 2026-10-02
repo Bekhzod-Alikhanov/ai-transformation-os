@@ -66,3 +66,5 @@ Ruling: practitioner usefulness and live AI performance are not established — 
 1 October 2026 (local): `corepack pnpm verify` exit 0. Formatting, lint, strict types, secret scan and production build pass; 365/365 unit tests in 99 files and 87/87 browser tests at desktop, tablet and mobile pass. Both presentation journeys, saved assessment regressions, source imports, migration retention, stale writes, recovery, simulation, exports and automated accessibility were exercised. Review findings were fixed in one pass; targeted regressions passed before this full run.
 
 Ruling: integration and production publication follow Beck's explicit Day 7 deployment request and AGENTS.md's squash-to-main workflow. No dependency/Node upgrades or new paid/provider integrations are introduced. Existing unrelated worktrees remain untouched.
+
+Integrated-tree verification initially failed formatting because Git's Windows autocrlf checkout rewrote all changed text to CRLF. Added `.gitattributes` to make text checkouts LF on every host, keeping binary files automatic. Formatting is rerun before the integrated release gate; no application logic changed in this correction.
